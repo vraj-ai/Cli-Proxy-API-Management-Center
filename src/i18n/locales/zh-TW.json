@@ -739,6 +739,8 @@
     "devin_oauth_cancelled": "已取消 Devin 登入。",
     "devin_oauth_cancel_error": "取消 Devin 登入失敗：",
     "devin_oauth_retry_hint": "伺服器可能仍在等待授權。請先取消本次登入，再重新開始。",
+    "devin_oauth_cooldown": "Devin 正在限制此網路位址，請 {{minutes}} 分鐘後再試。本頁面不會自動重試。",
+    "devin_oauth_cooldown_soon": "Devin 限流即將在一分鐘內解除。本頁面不會自動重試。",
     "devin_oauth_title": "Devin OAuth",
     "devin_oauth_button": "開始 Devin 登入",
     "devin_oauth_hint": "透過瀏覽器 OAuth 登入 Devin / Cognition，自動儲存認證檔案。需要 CLI Proxy API v7.3.1 或更新版本，請在五分鐘內完成授權。",

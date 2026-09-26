@@ -16,6 +16,12 @@ import { getKimiAffiliateUrl } from '@/features/providers/kimi';
 import type { PluginListEntry } from '@/types';
 import { createOAuthAttempts, type OAuthAttempt } from './oauthAttempts';
 import { validateDevinCallback } from './devinOAuth';
+import {
+  cooldownRemainingSeconds,
+  isDevinLoginBlocked,
+  parseDevinCooldownSeconds,
+} from './devinCooldown';
+import { useNow } from '@/hooks/useNow';
 import styles from './OAuthPage.module.scss';
 import iconMeta from '@/assets/icons/meta.svg';
 import iconCodex from '@/assets/icons/codex.svg';
@@ -42,6 +48,8 @@ interface ProviderState {
   callbackSubmitting?: boolean;
   callbackStatus?: 'success' | 'error';
   callbackError?: string;
+  /** Devin login cooldown deadline (ms epoch); no auto-retry while in the future. */
+  cooldownUntil?: number;
 }
 
 interface VertexImportResult {
@@ -266,6 +274,8 @@ export function OAuthPage() {
   const { showNotification } = useNotificationStore();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [states, setStates] = useState<Record<string, ProviderState>>({});
+  // Minute clock drives the Devin cooldown countdown; no per-card timer.
+  const now = useNow();
   const [pluginProviders, setPluginProviders] = useState<PluginOAuthProviderCard[]>([]);
   const [vertexState, setVertexState] = useState<VertexImportState>({
     fileName: '',
@@ -371,6 +381,7 @@ export function OAuthPage() {
       state: undefined,
       status: 'success',
       error: undefined,
+      cooldownUntil: undefined,
       polling: false,
       cancelling: false,
       cancelError: undefined,
@@ -463,8 +474,9 @@ export function OAuthPage() {
 
   const startAuth = async (provider: string) => {
     // A network error can stop polling while the server is still waiting. Require
-    // explicit cancellation before replacing that Devin session.
-    if (provider === 'devin' && states[provider]?.state) return;
+    // explicit cancellation before replacing that Devin session. A rate-limit
+    // cooldown also blocks: retrying inside it can extend the provider ban.
+    if (provider === 'devin' && isDevinLoginBlocked(states[provider], Date.now())) return;
     const attempt = attempts.current.begin(provider);
     updateProviderState(provider, {
       url: undefined,
@@ -501,12 +513,31 @@ export function OAuthPage() {
         state: res.state,
         status: 'waiting',
         polling: true,
+        cooldownUntil: undefined,
       });
       startPolling(provider, res.state, attempt);
     } catch (err: unknown) {
       if (!attempt.isCurrent()) return;
-      const message = getErrorMessage(err);
-      updateProviderState(provider, { status: 'error', error: message, polling: false });
+      const status = getErrorStatus(err);
+      let message = getErrorMessage(err);
+      let cooldownUntil: number | undefined;
+      if (provider === 'devin') {
+        if (status === 404) {
+          // The connected backend predates the Devin management route.
+          message = t('auth_login.oauth_callback_upgrade_hint');
+        } else {
+          // A provider rate limit becomes a visible countdown. Never retry
+          // automatically: further attempts can extend the ban.
+          const seconds = parseDevinCooldownSeconds(err);
+          if (seconds !== undefined) cooldownUntil = Date.now() + seconds * 1000;
+        }
+      }
+      updateProviderState(provider, {
+        status: 'error',
+        error: message,
+        polling: false,
+        cooldownUntil,
+      });
       showNotification(
         `${getProviderTextByID(provider, 'oauth_start_error')}${message ? ` ${message}` : ''}`,
         'error'
@@ -654,6 +685,12 @@ export function OAuthPage() {
 
   const renderOAuthProviderCard = (provider: OAuthProviderCard, featured = false) => {
     const state = states[provider.id] || {};
+    // Devin cooldown from the app-wide minute clock: no auto-retry, manual
+    // start only after expiry.
+    const cooldownSecs =
+      provider.id === 'devin' ? cooldownRemainingSeconds(state.cooldownUntil, now) : 0;
+    const cooldownActive = cooldownSecs > 0;
+    const cooldownMinutes = Math.max(1, Math.ceil(cooldownSecs / 60));
     const showKimiSignUp = featured && provider.kind === 'builtin' && provider.id === 'kimi';
     const canSubmitCallback =
       (provider.kind === 'plugin' || CALLBACK_SUPPORTED.has(provider.id)) && Boolean(state.url);
@@ -701,7 +738,7 @@ export function OAuthPage() {
             <Button
               onClick={() => startAuth(provider.id)}
               loading={state.polling}
-              disabled={provider.id === 'devin' && Boolean(state.state)}
+              disabled={provider.id === 'devin' && (Boolean(state.state) || cooldownActive)}
             >
               {loginButtonLabel}
             </Button>
@@ -818,6 +855,13 @@ export function OAuthPage() {
                   {t('auth_login.oauth_callback_status_error')} {state.callbackError || ''}
                 </div>
               )}
+            </div>
+          )}
+          {provider.id === 'devin' && state.status === 'error' && cooldownActive && (
+            <div className="status-badge error">
+              {cooldownSecs < 60
+                ? t('auth_login.devin_oauth_cooldown_soon')
+                : t('auth_login.devin_oauth_cooldown', { minutes: cooldownMinutes })}
             </div>
           )}
           {state.status && state.status !== 'idle' && (

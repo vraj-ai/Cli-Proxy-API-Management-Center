@@ -739,6 +739,8 @@
     "devin_oauth_cancelled": "已取消 Devin 登录。",
     "devin_oauth_cancel_error": "取消 Devin 登录失败：",
     "devin_oauth_retry_hint": "服务器可能仍在等待授权。请先取消本次登录，再重新开始。",
+    "devin_oauth_cooldown": "Devin 正在限制此网络地址，请 {{minutes}} 分钟后再试。本页面不会自动重试。",
+    "devin_oauth_cooldown_soon": "Devin 限流即将在一分钟内解除。本页面不会自动重试。",
     "devin_oauth_title": "Devin OAuth",
     "devin_oauth_button": "开始 Devin 登录",
     "devin_oauth_hint": "通过浏览器 OAuth 登录 Devin / Cognition，自动保存认证文件。需要 CLI Proxy API v7.3.1 或更高版本，请在五分钟内完成授权。",

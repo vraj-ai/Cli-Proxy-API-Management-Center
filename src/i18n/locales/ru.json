@@ -744,6 +744,8 @@
     "devin_oauth_cancelled": "Вход в Devin отменён.",
     "devin_oauth_cancel_error": "Не удалось отменить вход в Devin:",
     "devin_oauth_retry_hint": "Сервер может всё ещё ожидать авторизацию. Отмените эту попытку входа перед новой.",
+    "devin_oauth_cooldown": "Devin ограничивает этот сетевой адрес. Повторите попытку через {{minutes}} мин. Страница не будет повторять попытку автоматически.",
+    "devin_oauth_cooldown_soon": "Ограничение Devin снимется менее чем через минуту. Страница не будет повторять попытку автоматически.",
     "devin_oauth_title": "Devin OAuth",
     "devin_oauth_button": "Войти в Devin",
     "devin_oauth_hint": "Войдите в Devin / Cognition через OAuth в браузере для сохранения файла аутентификации. Требуется CLI Proxy API v7.3.1 или новее; завершите авторизацию в течение пяти минут.",
