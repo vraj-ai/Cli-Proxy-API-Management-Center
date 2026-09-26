@@ -19,4 +19,6 @@ export type ApiError = Error & {
   apiCode?: string;
   details?: unknown;
   data?: unknown;
+  /** Raw response headers (e.g. Retry-After for rate-limited logins). */
+  headers?: Record<string, unknown>;
 };

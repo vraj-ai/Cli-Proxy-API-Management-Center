@@ -14,6 +14,7 @@ import {
   VERSION_HEADER_KEYS,
 } from '@/utils/constants';
 import { computeApiUrl } from '@/utils/connection';
+import { isRecord } from '@/utils/helpers';
 import { parseApiErrorResponse } from './apiError';
 
 class ApiClient {
@@ -163,6 +164,12 @@ class ApiClient {
       apiError.apiCode = parsedError.apiCode;
       apiError.details = responseData;
       apiError.data = responseData;
+      // Preserve safe response headers so callers can honor Retry-After
+      // without reissuing the request.
+      const responseHeaders: unknown = error.response?.headers;
+      if (isRecord(responseHeaders)) {
+        apiError.headers = responseHeaders;
+      }
 
       // 401 未授权 - 触发登出事件
       if (error.response?.status === 401) {
