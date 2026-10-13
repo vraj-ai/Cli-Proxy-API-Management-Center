@@ -499,11 +499,15 @@
   }
 
   .sidebar-brand-logo {
+    display: grid;
+    place-items: center;
     width: 30px;
     height: 30px;
-    object-fit: contain;
+    border: 1px solid var(--border-color);
     border-radius: 7px;
-    box-shadow: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 750;
     flex-shrink: 0;
   }
 

@@ -24,6 +24,31 @@ export const getPluginTitle = (plugin: PluginListEntry) =>
 export const buildPluginResourceRoute = (pluginID: string, menuIndex: number) =>
   `/plugin-pages/${encodeURIComponent(pluginID)}/${menuIndex}`;
 
+export const isFleetPlugin = (pluginID: string) =>
+  pluginID.trim().toLowerCase().split('/').pop() === 'fleet';
+
+export const resolveLegacyFleetRoute = (pluginID: string, menuIndex: number) => {
+  if (!isFleetPlugin(pluginID)) return null;
+  return ['/fleet', '/fleet/access', '/fleet/activity', '/fleet'][menuIndex] ?? '/fleet';
+};
+
+export const resolvePluginResourceRoute = (pluginID: string, path: string, menuIndex: number) => {
+  if (isFleetPlugin(pluginID)) {
+    const normalizedPath = path.trim().replace(/\/+$/, '');
+    const fleetRoutes: Record<string, string> = {
+      '/hub': '/fleet',
+      '/': '/fleet',
+      '/keys': '/fleet/access',
+      '/models': '/fleet/access?tab=models',
+      '/savings': '/fleet/activity',
+      '/router': '/fleet',
+    };
+    const route = fleetRoutes[normalizedPath];
+    if (route) return route;
+  }
+  return buildPluginResourceRoute(pluginID, menuIndex);
+};
+
 export const resolvePluginAssetURL = (value: string, apiBase: string) => {
   const trimmed = value.trim();
   if (!trimmed) return '';
@@ -105,7 +130,7 @@ export const collectPluginResourceEntries = (plugins: PluginListEntry[]): Plugin
           menu: { ...menu, path },
           label: menuLabel || pluginTitle,
           description: menu.description.trim() || pluginTitle,
-          route: buildPluginResourceRoute(plugin.id, menuIndex),
+          route: resolvePluginResourceRoute(plugin.id, path, menuIndex),
         };
       })
       .filter((entry): entry is PluginResourceEntry => Boolean(entry));
