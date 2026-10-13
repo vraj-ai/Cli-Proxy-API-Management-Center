@@ -31,7 +31,6 @@ import {
   IconSidebarSystem,
   IconChevronDown,
 } from '@/components/ui/icons';
-import { INLINE_LOGO_JPEG } from '@/assets/logoInline';
 import {
   useAuthStore,
   useConfigStore,
@@ -42,6 +41,7 @@ import {
 import { AUTH_FILES_CHANGED_EVENT } from '@/features/authFiles/authFilesEvents';
 import {
   collectPluginResourceEntries,
+  isFleetPlugin,
   PLUGIN_RESOURCES_REFRESH_EVENT,
   resolvePluginAssetURL,
   type PluginResourceEntry,
@@ -349,8 +349,8 @@ export function MainLayout() {
   const themeMenuRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
 
-  const fullBrandName = 'CLI Proxy API Management Center';
-  const abbrBrandName = t('title.abbr');
+  const fullBrandName = 'Fleet';
+  const abbrBrandName = 'Fleet';
   const isLogsPage = location.pathname.startsWith('/logs');
   const isPluginResourcePage = location.pathname.startsWith('/plugin-pages');
   const showSidebarLabels = !sidebarCollapsed || sidebarOpen;
@@ -550,7 +550,7 @@ export function MainLayout() {
   }, []);
 
   const pluginPageNavItems: SidebarNavItem[] = supportsPlugin
-    ? pluginResourceGroups.flatMap((group): SidebarNavItem[] => {
+    ? pluginResourceGroups.filter((group) => !isFleetPlugin(group.pluginID)).flatMap((group): SidebarNavItem[] => {
         if (group.entries.length === 1) {
           const resource = group.entries[0];
           const pluginLogo = resolvePluginAssetURL(resource.pluginLogo, apiBase);
@@ -594,11 +594,17 @@ export function MainLayout() {
 
   const navGroups: SidebarNavGroup[] = [
     {
-      id: 'operate',
-      labelKey: 'nav_groups.operate',
+      id: 'overview',
+      labelKey: 'fleet.group_overview',
       items: [
         {
-          path: '/',
+          path: '/fleet',
+          labelKey: 'fleet.nav_overview',
+          metaKey: 'fleet.description_overview',
+          icon: sidebarIcons.dashboard,
+        },
+        {
+          path: '/dashboard',
           labelKey: 'nav.dashboard',
           metaKey: 'nav_meta.dashboard',
           icon: sidebarIcons.dashboard,
@@ -607,8 +613,8 @@ export function MainLayout() {
       ],
     },
     {
-      id: 'gateway',
-      labelKey: 'nav_groups.gateway',
+      id: 'accounts',
+      labelKey: 'fleet.group_accounts',
       items: [
         {
           path: '/ai-providers',
@@ -637,9 +643,27 @@ export function MainLayout() {
       ],
     },
     {
-      id: 'observe',
-      labelKey: 'nav_groups.observe',
+      id: 'access',
+      labelKey: 'fleet.group_access',
       items: [
+        {
+          path: '/fleet/access',
+          labelKey: 'fleet.nav_access',
+          metaKey: 'fleet.description_access',
+          icon: sidebarIcons.authFiles,
+        },
+      ],
+    },
+    {
+      id: 'activity',
+      labelKey: 'fleet.group_activity',
+      items: [
+        {
+          path: '/fleet/activity',
+          labelKey: 'fleet.nav_activity',
+          metaKey: 'fleet.description_activity',
+          icon: sidebarIcons.logs,
+        },
         {
           path: '/quota',
           labelKey: 'nav.quota_management',
@@ -655,8 +679,8 @@ export function MainLayout() {
       ],
     },
     {
-      id: 'control',
-      labelKey: 'nav_groups.control',
+      id: 'settings',
+      labelKey: 'fleet.group_settings',
       items: [
         {
           path: '/config',
@@ -692,7 +716,7 @@ export function MainLayout() {
       ? [
           {
             id: 'plugin-pages',
-            labelKey: 'nav_groups.plugin_pages',
+            labelKey: 'fleet.group_extensions',
             items: pluginPageNavItems,
           },
         ]
@@ -1152,11 +1176,11 @@ export function MainLayout() {
         >
           <div className="sidebar-header">
             <div className="sidebar-brand" title={fullBrandName}>
-              <img src={INLINE_LOGO_JPEG} alt="CPAMC logo" className="sidebar-brand-logo" />
+              <span className="sidebar-brand-logo" aria-hidden="true">F</span>
               {showSidebarLabels && (
                 <span className="sidebar-brand-text">
                   <span className="sidebar-brand-title">{abbrBrandName}</span>
-                  <span className="sidebar-brand-subtitle">{t('sidebar.subtitle')}</span>
+                  <span className="sidebar-brand-subtitle">{t('fleet.sidebar_subtitle')}</span>
                 </span>
               )}
             </div>

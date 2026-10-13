@@ -1,4 +1,4 @@
-import { Navigate, useRoutes, type Location } from 'react-router-dom';
+import { Navigate, useParams, useRoutes, type Location } from 'react-router-dom';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { ProvidersWorkbenchPage } from '@/features/providers/ProvidersWorkbenchPage';
 import { AuthFilesPage } from '@/features/authFiles/AuthFilesPage';
@@ -13,10 +13,21 @@ import { ConfigPage } from '@/features/config/ConfigPage';
 import { LogsPage } from '@/pages/LogsPage';
 import { SystemPage } from '@/pages/SystemPage';
 import { useAuthStore } from '@/stores';
+import { resolveLegacyFleetRoute } from '@/features/plugins/pluginResources';
+import { FleetPage } from '@/features/fleet/FleetPage';
+
+function PluginResourceRoute() {
+  const { pluginId = '', menuIndex = '' } = useParams();
+  const nativeRoute = resolveLegacyFleetRoute(pluginId, Number(menuIndex));
+  return nativeRoute ? <Navigate to={nativeRoute} replace /> : <PluginResourcePage />;
+}
 
 const createMainRoutes = (supportsPlugin: boolean) => [
-  { path: '/', element: <DashboardPage /> },
+  { path: '/', element: <Navigate to="/fleet" replace /> },
   { path: '/dashboard', element: <DashboardPage /> },
+  { path: '/fleet', element: <FleetPage /> },
+  { path: '/fleet/access', element: <FleetPage /> },
+  { path: '/fleet/activity', element: <FleetPage /> },
   { path: '/settings', element: <Navigate to="/config" replace /> },
   { path: '/api-keys', element: <Navigate to="/config" replace /> },
   { path: '/quick-start', element: <ProvidersWorkbenchPage fixedBrand="apikeyFun" /> },
@@ -30,7 +41,7 @@ const createMainRoutes = (supportsPlugin: boolean) => [
   { path: '/quota', element: <QuotaPage /> },
   ...(supportsPlugin
     ? [
-        { path: '/plugin-pages/:pluginId/:menuIndex', element: <PluginResourcePage /> },
+        { path: '/plugin-pages/:pluginId/:menuIndex', element: <PluginResourceRoute /> },
         { path: '/plugins', element: <PluginsPage /> },
         { path: '/plugin-store', element: <PluginStorePage /> },
         { path: '/plugins/*', element: <Navigate to="/plugins" replace /> },
