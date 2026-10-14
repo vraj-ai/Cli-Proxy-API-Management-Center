@@ -14,6 +14,18 @@ const DEFAULT_ANTHROPIC_VERSION = '2023-06-01';
 const CLAUDE_MODELS_IN_FLIGHT = new Map<string, Promise<ReturnType<typeof normalizeModelList>>>();
 const GEMINI_MODELS_IN_FLIGHT = new Map<string, Promise<ReturnType<typeof normalizeModelList>>>();
 
+// The retired Fleet router exposed a synthetic "cpa router" model on the
+// proxy. Runtimes from before its removal can still serve it; it is not a real
+// provider model and must never surface in pickers or diagnostics.
+export const isLegacyCpaRouterModel = (name: string) =>
+  name.trim().toLowerCase() === 'cpa router';
+
+const normalizeConsoleModelList = (
+  payload: unknown,
+  options: { dedupe?: boolean } = {}
+): ReturnType<typeof normalizeModelList> =>
+  normalizeModelList(payload, options).filter((model) => !isLegacyCpaRouterModel(model.name));
+
 const buildRequestSignature = (
   url: string,
   headers: Record<string, string>,
@@ -100,7 +112,7 @@ export const modelsApi = {
       headers: Object.keys(resolvedHeaders).length ? resolvedHeaders : undefined,
     });
     const payload = response.data?.data ?? response.data?.models ?? response.data;
-    return normalizeModelList(payload, { dedupe: true });
+    return normalizeConsoleModelList(payload, { dedupe: true });
   },
 
   /**
@@ -138,7 +150,7 @@ export const modelsApi = {
     }
 
     const payload = result.body ?? result.bodyText;
-    return normalizeModelList(payload, { dedupe: true });
+    return normalizeConsoleModelList(payload, { dedupe: true });
   },
 
   /**
@@ -175,7 +187,7 @@ export const modelsApi = {
     }
 
     const payload = result.body ?? result.bodyText;
-    return normalizeModelList(payload, { dedupe: true });
+    return normalizeConsoleModelList(payload, { dedupe: true });
   },
 
   /**
@@ -226,7 +238,7 @@ export const modelsApi = {
       }
 
       const payload = result.body ?? result.bodyText;
-      return normalizeModelList(payload, { dedupe: true });
+      return normalizeConsoleModelList(payload, { dedupe: true });
     })();
 
     CLAUDE_MODELS_IN_FLIGHT.set(signature, request);
@@ -288,7 +300,7 @@ export const modelsApi = {
         }
 
         const payload = result.body ?? result.bodyText;
-        const normalized = normalizeModelList(payload, { dedupe: false });
+        const normalized = normalizeConsoleModelList(payload, { dedupe: false });
         normalized.forEach((model) => {
           const name = stripGeminiModelResourceName(model.name);
           const key = (name || '').toLowerCase();

@@ -14,10 +14,10 @@
     "nav_activity": "活動",
     "title_overview": "執行個體總覽",
     "title_access": "存取與模型",
-    "title_activity": "壓縮活動",
+    "title_activity": "Fleet 活動",
     "description_overview": "查看供應商可用性、配額更新時間與最近的請求速率。",
     "description_access": "管理用戶端金鑰，並選擇精確模型與請求路徑政策。",
-    "description_activity": "來自本機壓縮遙測的文字與位元組縮減資料。",
+    "description_activity": "配額新鮮度、最近請求速率與實測壓縮節省。",
     "loading": "正在載入 Fleet 資料…",
     "unavailable_title": "Fleet 無法使用",
     "unavailable_body": "請在此 Proxy 啟用 Fleet 外掛程式以使用這些控制項。",
@@ -112,7 +112,13 @@
     "byte_flow": "壓縮前 {{before}} 位元組 → 壓縮後 {{after}} 位元組",
     "injection_heading": "指令注入",
     "injection_explainer": "目前程序中的要求本文修改次數。此數字不代表 token 節省或模型遵循情形。",
-    "injections": "次注入"
+    "injections": "次注入",
+    "freshness_heading": "新鮮度",
+    "freshness_help": "此執行個體的配額新鮮度與最近一次請求速率。",
+    "stale_accounts": "{{count}} 個已過期",
+    "quota_fresh": "已追蹤帳戶 · 配額均為最新",
+    "state_generated": "狀態產生時間",
+    "open_overview": "開啟執行個體概覽"
   },
   "common": {
     "login": "登入",

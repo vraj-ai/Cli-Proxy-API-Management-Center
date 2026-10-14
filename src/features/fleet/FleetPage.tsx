@@ -778,12 +778,60 @@ function FleetAccess() {
 function FleetActivity() {
   const { t } = useTranslation();
   const load = useCallback(() => fleetApi.savings(), []);
+  const stateLoad = useCallback(() => fleetApi.state(), []);
   const { result, refresh } = useFleetData(load);
+  const stateData = useFleetData(stateLoad);
   const savings: FleetSavings | null = result.status === 'ready' ? result.value : null;
+  const state = stateData.result.status === 'ready' ? stateData.result.value : null;
+  const staleProviders = state?.quota.filter((provider) => provider.stale) ?? [];
 
   return (
     <FleetShell view="activity">
       <LoadState result={result} retry={() => void refresh()} />
+      <LoadState result={stateData.result} retry={() => void stateData.refresh()} />
+      {state && (
+        <section className={styles.panel}>
+          <h2>{t('fleet.freshness_heading')}</h2>
+          <p className={styles.muted}>{t('fleet.freshness_help')}</p>
+          <div className={styles.metricRow}>
+            <span>
+              <strong>{state.pace.tps?.toFixed(1) ?? '—'}</strong>
+              <small>
+                {t('fleet.tokens_per_second')}
+                {state.pace.model ? ` · ${state.pace.model}` : ''}
+              </small>
+            </span>
+            <span>
+              <strong>{state.quota.length.toLocaleString()}</strong>
+              <small>
+                {staleProviders.length
+                  ? t('fleet.stale_accounts', { count: staleProviders.length })
+                  : t('fleet.quota_fresh')}
+              </small>
+            </span>
+            <span>
+              <strong>{new Date(state.generated_at).toLocaleTimeString()}</strong>
+              <small>{t('fleet.state_generated')}</small>
+            </span>
+          </div>
+          {staleProviders.length > 0 && (
+            <div className={styles.quotaList}>
+              {staleProviders.map((provider) => (
+                <div className={styles.quotaProvider} key={provider.name}>
+                  <div className={styles.quotaProviderHead}>
+                    <strong>{provider.name}</strong>
+                    <span>{provider.plan}</span>
+                    <span className={styles.stale}>{t('fleet.stale')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <Link className={styles.inlineLink} to="/fleet">
+            {t('fleet.open_overview')}
+          </Link>
+        </section>
+      )}
       {savings && (
         <>
           <p className={styles.caveat}>{savings.note || t('fleet.savings_caveat')}</p>
