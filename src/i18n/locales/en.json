@@ -14,10 +14,10 @@
     "nav_activity": "Activity",
     "title_overview": "Instance overview",
     "title_access": "Access and models",
-    "title_activity": "Compression activity",
+    "title_activity": "Fleet activity",
     "description_overview": "Provider availability, quota freshness and the latest request pace.",
     "description_access": "Manage client keys and choose exact models and path policies.",
-    "description_activity": "Measured text and byte reductions from local compression telemetry.",
+    "description_activity": "Quota freshness, latest request pace and measured compression savings.",
     "loading": "Loading Fleet data…",
     "unavailable_title": "Fleet is unavailable",
     "unavailable_body": "Enable the Fleet plugin on this proxy to use these controls.",
@@ -112,7 +112,13 @@
     "byte_flow": "{{before}} bytes before → {{after}} after",
     "injection_heading": "Instruction injections",
     "injection_explainer": "Body edits in this process. This count does not measure tokens saved or model compliance.",
-    "injections": "injections"
+    "injections": "injections",
+    "freshness_heading": "Freshness",
+    "freshness_help": "Quota freshness and the latest request pace on this instance.",
+    "stale_accounts": "{{count}} stale",
+    "quota_fresh": "accounts tracked · all quota fresh",
+    "state_generated": "fleet state generated",
+    "open_overview": "Open instance overview"
   },
   "common": {
     "login": "Login",

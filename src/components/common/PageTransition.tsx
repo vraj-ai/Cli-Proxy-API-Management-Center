@@ -103,7 +103,17 @@ export function PageTransition({
   useLayoutEffect(() => {
     if (isAnimating) return;
     if (location.key === currentLayerKey) return;
-    if (currentLayerPathname === location.pathname) return;
+    if (currentLayerPathname === location.pathname) {
+      // Same page with a new search/hash (e.g. ?tab= switches): refresh the
+      // stored location without animating or remounting, so routed components
+      // observing useSearchParams/useLocation see the update.
+      if (currentLayer?.location !== location) {
+        setLayers((prev) =>
+          prev.map((layer) => (layer.status === 'current' ? { ...layer, location } : layer))
+        );
+      }
+      return;
+    }
     const scrollContainer = resolveScrollContainer();
     const exitScrollOffset = scrollContainer?.scrollTop ?? 0;
     exitScrollOffsetRef.current = exitScrollOffset;
@@ -215,6 +225,7 @@ export function PageTransition({
     location,
     currentLayerKey,
     currentLayerPathname,
+    currentLayer?.location,
     getRouteOrder,
     getTransitionVariant,
     resolveScrollContainer,

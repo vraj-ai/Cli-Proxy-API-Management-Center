@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs';
 import {
   collectPluginResourceEntries,
   resolveLegacyFleetRoute,
+  resolvePluginResourceRoute,
 } from '../src/features/plugins/pluginResources';
+import { isLegacyCpaRouterModel } from '../src/services/api/models';
 import type { PluginListEntry } from '../src/types';
 import { parseModelGrantRules } from '../src/features/fleet/grants';
 
@@ -46,6 +48,40 @@ describe('Fleet plugin route adoption', () => {
     expect(resolveLegacyFleetRoute('fleet', 2)).toBe('/fleet/activity');
     expect(resolveLegacyFleetRoute('fleet', 3)).toBe('/fleet');
     expect(resolveLegacyFleetRoute('metrics', 0)).toBeNull();
+  });
+
+  it('adopts every legacy Fleet resource path the backend emits', () => {
+    // Mirrors the legacy hash routes served by the Fleet plugin hub page:
+    // /keys, /models, /activity, /providers, /console plus the registered menus
+    // /hub, /savings and /router.
+    expect(resolvePluginResourceRoute('fleet', '/hub', 0)).toBe('/fleet');
+    expect(resolvePluginResourceRoute('fleet', '/', 0)).toBe('/fleet');
+    expect(resolvePluginResourceRoute('fleet', '/keys', 1)).toBe('/fleet/access');
+    expect(resolvePluginResourceRoute('fleet', '/models', 1)).toBe('/fleet/access?tab=models');
+    expect(resolvePluginResourceRoute('fleet', '/savings', 2)).toBe('/fleet/activity');
+    expect(resolvePluginResourceRoute('fleet', '/activity', 2)).toBe('/fleet/activity');
+    expect(resolvePluginResourceRoute('fleet', '/router', 3)).toBe('/fleet');
+    expect(resolvePluginResourceRoute('fleet', '/providers', 0)).toBe('/ai-providers');
+    expect(resolvePluginResourceRoute('fleet', '/console', 0)).toBe('/config');
+    expect(resolvePluginResourceRoute('fleet', '/unknown', 9)).toBe('/plugin-pages/fleet/9');
+  });
+
+  it('never surfaces the retired cpa router model in normalized lists', () => {
+    expect(isLegacyCpaRouterModel('cpa router')).toBe(true);
+    expect(isLegacyCpaRouterModel(' CPA ROUTER ')).toBe(true);
+    expect(isLegacyCpaRouterModel('gpt-5.4')).toBe(false);
+
+    const source = readFileSync(
+      new URL('../src/services/api/models.ts', import.meta.url),
+      'utf8'
+    );
+    expect(source.match(/return normalizeModelList\(/g) ?? []).toHaveLength(0);
+  });
+
+  it('ships a Fleet-branded document title', () => {
+    const source = readFileSync(new URL('../src/main.tsx', import.meta.url), 'utf8');
+    expect(source).toContain("document.title = 'Fleet'");
+    expect(source).not.toContain('Management Center');
   });
 
   it('keeps exact and prefix grants while merging catalog picks without duplicates', () => {

@@ -14,10 +14,10 @@
     "nav_activity": "活动",
     "title_overview": "实例概览",
     "title_access": "访问与模型",
-    "title_activity": "压缩活动",
+    "title_activity": "Fleet 活动",
     "description_overview": "查看供应商可用性、配额更新时间和最近请求速率。",
     "description_access": "管理客户端密钥，并选择精确模型和请求路径策略。",
-    "description_activity": "来自本地压缩遥测的文本与字节缩减数据。",
+    "description_activity": "配额新鲜度、最近请求速率与实测压缩节省。",
     "loading": "正在加载 Fleet 数据…",
     "unavailable_title": "Fleet 不可用",
     "unavailable_body": "请在此代理中启用 Fleet 插件以使用这些控制。",
@@ -112,7 +112,13 @@
     "byte_flow": "压缩前 {{before}} 字节 → 压缩后 {{after}} 字节",
     "injection_heading": "指令注入",
     "injection_explainer": "当前进程中的请求正文修改次数。此数字不代表 token 节省或模型遵循情况。",
-    "injections": "次注入"
+    "injections": "次注入",
+    "freshness_heading": "新鲜度",
+    "freshness_help": "此实例的配额新鲜度与最近一次请求速率。",
+    "stale_accounts": "{{count}} 个已过期",
+    "quota_fresh": "已跟踪账户 · 配额均为最新",
+    "state_generated": "状态生成时间",
+    "open_overview": "打开实例概览"
   },
   "common": {
     "login": "登录",

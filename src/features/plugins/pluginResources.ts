@@ -34,14 +34,17 @@ export const resolveLegacyFleetRoute = (pluginID: string, menuIndex: number) => 
 
 export const resolvePluginResourceRoute = (pluginID: string, path: string, menuIndex: number) => {
   if (isFleetPlugin(pluginID)) {
-    const normalizedPath = path.trim().replace(/\/+$/, '');
+    const normalizedPath = path.trim().replace(/\/+$/, '') || '/';
     const fleetRoutes: Record<string, string> = {
       '/hub': '/fleet',
       '/': '/fleet',
       '/keys': '/fleet/access',
       '/models': '/fleet/access?tab=models',
       '/savings': '/fleet/activity',
+      '/activity': '/fleet/activity',
       '/router': '/fleet',
+      '/providers': '/ai-providers',
+      '/console': '/config',
     };
     const route = fleetRoutes[normalizedPath];
     if (route) return route;
