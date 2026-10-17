@@ -11,7 +11,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type SyntheticEvent,
 } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { PageTransition } from '@/components/common/PageTransition';
@@ -724,6 +724,18 @@ export function MainLayout() {
   ];
   const navItems = navGroups.flatMap((group) => flattenNavItems(group.items));
   const navOrder = navItems.map((item) => item.path);
+  // A nav item owns the current page only when no more specific nav path matches.
+  // Without this, /fleet stays highlighted while /fleet/access is open.
+  const navPathMatches = (path: string, pathname: string) => {
+    const current =
+      pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+    const target = path === '/dashboard' ? '/' : path;
+    return current === target || current.startsWith(`${target}/`);
+  };
+  const activeNavPath = navItems.reduce<string | null>((best, item) => {
+    if (!navPathMatches(item.path, location.pathname)) return best;
+    return !best || item.path.length > best.length ? item.path : best;
+  }, null);
   const getRouteOrder = (pathname: string) => {
     const trimmedPath =
       pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
@@ -878,12 +890,14 @@ export function MainLayout() {
     const itemLabel = item.label ?? (item.labelKey ? t(item.labelKey) : '');
     const itemMeta = item.meta ?? (item.metaKey ? t(item.metaKey) : '');
     const accessibleLabel = item.badgeLabel ? `${itemLabel}, ${item.badgeLabel}` : itemLabel;
+    const isActive = item.path === activeNavPath;
 
     return (
-      <NavLink
+      <Link
         key={item.path}
         to={item.path}
-        className={({ isActive }) => `${className} ${isActive ? 'active' : ''}`}
+        className={`${className} ${isActive ? 'active' : ''}`}
+        aria-current={isActive ? 'page' : undefined}
         onClick={() => {
           focusedRailItemRef.current = null;
           setSidebarOpen(false);
@@ -923,7 +937,7 @@ export function MainLayout() {
         ) : (
           renderNavBadge(item.badge)
         )}
-      </NavLink>
+      </Link>
     );
   };
 
