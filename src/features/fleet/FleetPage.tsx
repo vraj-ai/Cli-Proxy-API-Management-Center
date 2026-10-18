@@ -5,7 +5,7 @@ import { fleetApi, type FleetGrant, type FleetSavings } from '@/services/api/fle
 import { pluginsApi } from '@/services/api/plugins';
 import { useAuthStore } from '@/stores';
 import { isRecord } from '@/utils/helpers';
-import { parseModelGrantRules } from './grants';
+import { DEFAULT_GRANT_MODE, grantModelsFor } from './grants';
 import styles from './FleetPage.module.scss';
 
 type FleetView = 'overview' | 'access' | 'activity';
@@ -265,6 +265,83 @@ function FleetOverview() {
   );
 }
 
+function KeySecretDialog({
+  secret,
+  link,
+  onClose,
+}: {
+  secret: string;
+  link: string;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
+
+  const copySecret = async () => {
+    if (!navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(secret);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className={styles.secretDialog}
+      aria-labelledby="fleet-key-created"
+      onClose={onClose}
+      onCancel={onClose}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) dialogRef.current?.close();
+      }}
+    >
+      <div className={styles.secretEyebrow}>{t('fleet.secret_eyebrow')}</div>
+      <h2 id="fleet-key-created">{t('fleet.secret_once')}</h2>
+      <p>{t('fleet.secret_help')}</p>
+      <div className={styles.secretValue}>
+        <code>{secret}</code>
+      </div>
+      <dl className={styles.secretMeta}>
+        <div>
+          <dt>{t('fleet.endpoint')}</dt>
+          <dd>
+            <code>{link ? `${link.replace(/\/$/, '')}/v1` : t('fleet.unknown')}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>{t('fleet.auth_header')}</dt>
+          <dd>
+            <code>Authorization: Bearer &lt;key&gt;</code>
+          </dd>
+        </div>
+      </dl>
+      <div className={styles.dialogActions}>
+        <button type="button" className={styles.primaryButton} onClick={() => void copySecret()}>
+          {copied ? t('fleet.copied') : t('fleet.copy_secret')}
+        </button>
+        <button
+          type="button"
+          className={styles.linkButton}
+          onClick={() => dialogRef.current?.close()}
+        >
+          {t('fleet.done')}
+        </button>
+      </div>
+    </dialog>
+  );
+}
+
+const modelFeatures = ['pxpipe', 'caveman', 'ponytail'] as const;
+
 function FleetAccess() {
   const { t } = useTranslation();
   const location = useLocation();
@@ -276,7 +353,7 @@ function FleetAccess() {
   const keysData = useFleetData(keysLoad);
   const [filter, setFilter] = useState('');
   const [name, setName] = useState('');
-  const [mode, setMode] = useState<'all' | 'list'>('all');
+  const [mode, setMode] = useState<'all' | 'list'>(DEFAULT_GRANT_MODE);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [manualModelRules, setManualModelRules] = useState('');
   const [secret, setSecret] = useState('');
@@ -337,6 +414,8 @@ function FleetAccess() {
         client_tools: { ...currentTools, [feature]: enabled },
       });
     });
+  const listModeInvalid =
+    mode === 'list' && selectedModels.length === 0 && !manualModelRules.trim();
 
   return (
     <FleetShell view="access">
@@ -370,42 +449,55 @@ function FleetAccess() {
                     <p>{t('fleet.exact_catalog_help')}</p>
                   </div>
                   <label className={styles.search}>
-                    {t('fleet.search_models')}
+                    <span>{t('fleet.search_models')}</span>
                     <input
                       value={filter}
                       onChange={(event) => setFilter(event.target.value)}
                       type="search"
+                      placeholder={t('fleet.model_search_placeholder')}
                     />
                   </label>
                 </div>
-                <p className={styles.muted}>
-                  {t('fleet.model_count', { count: state.models.length })}
-                </p>
-                <label className={styles.compressionToggle}>
-                  <input
-                    type="checkbox"
-                    checked={state.pxpipe.compressing}
-                    disabled={!state.pxpipe.reachable || busy}
-                    onChange={(event) =>
-                      void mutate(() => fleetApi.setCompression(event.target.checked))
-                    }
-                  />
-                  <span>
-                    <strong>{t('fleet.compression_toggle')}</strong>
-                    <small>
-                      {state.pxpipe.reachable
-                        ? t('fleet.compression_help')
-                        : t('fleet.pxpipe_unreachable')}
-                    </small>
+                <div className={styles.modelToolbar}>
+                  <span className={styles.modelCount}>
+                    {t('fleet.model_count', { count: state.models.length })}
                   </span>
-                </label>
-                <div className={styles.modelList}>
+                  <label className={styles.compressionToggle}>
+                    <input
+                      type="checkbox"
+                      checked={state.pxpipe.compressing}
+                      disabled={!state.pxpipe.reachable || busy}
+                      onChange={(event) =>
+                        void mutate(() => fleetApi.setCompression(event.target.checked))
+                      }
+                    />
+                    <span>
+                      <strong>{t('fleet.compression_toggle')}</strong>
+                      <small>
+                        {state.pxpipe.reachable
+                          ? t('fleet.compression_help')
+                          : t('fleet.pxpipe_unreachable')}
+                      </small>
+                    </span>
+                  </label>
+                </div>
+                <div className={styles.modelTable} role="table" aria-label={t('fleet.model_table')}>
+                  <div className={styles.modelTableHead} role="row">
+                    <span role="columnheader">{t('fleet.model')}</span>
+                    <span role="columnheader">{t('fleet.pxpipe_scope')}</span>
+                    {modelFeatures.map((feature) => (
+                      <span role="columnheader" key={feature}>
+                        {t(`fleet.feature_${feature}`)}
+                      </span>
+                    ))}
+                  </div>
                   {models.map((model) => (
-                    <div className={styles.modelRow} key={model}>
-                      <code>{model}</code>
-                      <label>
+                    <div className={styles.modelRow} role="row" key={model}>
+                      <code role="cell">{model}</code>
+                      <label className={styles.checkCell} role="cell">
                         <input
                           type="checkbox"
+                          aria-label={`${model} ${t('fleet.pxpipe_scope')}`}
                           checked={state.pxpipe.scope.includes(model)}
                           onChange={(event) =>
                             void mutate(() =>
@@ -417,12 +509,13 @@ function FleetAccess() {
                             )
                           }
                         />
-                        {t('fleet.pxpipe_scope')}
+                        <span className={styles.cellLabel}>{t('fleet.pxpipe_scope')}</span>
                       </label>
-                      {(['pxpipe', 'caveman', 'ponytail'] as const).map((feature) => (
-                        <label key={feature}>
+                      {modelFeatures.map((feature) => (
+                        <label className={styles.checkCell} role="cell" key={feature}>
                           <input
                             type="checkbox"
+                            aria-label={`${model} ${t(`fleet.feature_${feature}`)}`}
                             checked={
                               state.features.effective[model]?.[feature] ??
                               state.features.defaults[feature] ??
@@ -434,7 +527,7 @@ function FleetAccess() {
                               )
                             }
                           />
-                          {t(`fleet.feature_${feature}`)}
+                          <span className={styles.cellLabel}>{t(`fleet.feature_${feature}`)}</span>
                         </label>
                       ))}
                     </div>
@@ -495,78 +588,87 @@ function FleetAccess() {
             </div>
           )}
           {secret && (
-            <section className={styles.secret} aria-live="polite">
-              <strong>{t('fleet.secret_once')}</strong>
-              <p>{t('fleet.secret_help')}</p>
-              <code>{secret}</code>
-              <button type="button" onClick={() => void navigator.clipboard?.writeText(secret)}>
-                {t('fleet.copy_secret')}
-              </button>
-              <button type="button" onClick={() => setSecret('')}>
-                {t('fleet.dismiss_secret')}
-              </button>
-            </section>
+            <KeySecretDialog
+              secret={secret}
+              link={state?.link ?? ''}
+              onClose={() => setSecret('')}
+            />
           )}
-          {state && (
-            <section className={styles.panel}>
+          <section className={styles.panel}>
+            <div className={styles.createIntro}>
               <h2>{t('fleet.create_key')}</h2>
-              <form
-                className={styles.createForm}
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void mutate(
-                    () =>
-                      fleetApi.createKey({
-                        name: name.trim(),
-                        mode,
-                        models:
-                          mode === 'list'
-                            ? parseModelGrantRules(manualModelRules, selectedModels)
-                            : [],
-                      }),
-                    (result) => {
-                      setSecret(result.secret);
-                      setName('');
-                      setSelectedModels([]);
-                      setManualModelRules('');
-                    }
-                  );
-                }}
-              >
-                <label>
-                  {t('fleet.key_name')}
+              <p>{t('fleet.create_help')}</p>
+            </div>
+            <form
+              className={styles.createForm}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void mutate(
+                  () =>
+                    fleetApi.createKey({
+                      name: name.trim() || t('fleet.default_key_name'),
+                      mode,
+                      models: grantModelsFor(mode, manualModelRules, selectedModels),
+                    }),
+                  (result) => {
+                    setSecret(result.secret);
+                    setName('');
+                    setSelectedModels([]);
+                    setManualModelRules('');
+                  }
+                );
+              }}
+            >
+              <label className={styles.field}>
+                <span>{t('fleet.key_name_optional')}</span>
+                <input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  maxLength={80}
+                  placeholder={t('fleet.key_name_placeholder')}
+                />
+              </label>
+              <fieldset className={styles.grantChoice}>
+                <legend>{t('fleet.grant_mode')}</legend>
+                <label className={mode === 'all' ? styles.grantOptionActive : styles.grantOption}>
                   <input
-                    required
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    maxLength={80}
+                    type="radio"
+                    name="fleet-grant"
+                    checked={mode === 'all'}
+                    onChange={() => setMode('all')}
                   />
+                  <span>
+                    <strong>{t('fleet.access_all_title')}</strong>
+                    <small>{t('fleet.access_all_help')}</small>
+                  </span>
                 </label>
-                <label>
-                  {t('fleet.grant_mode')}
-                  <select
-                    value={mode}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      if (value === 'all' || value === 'list') setMode(value);
-                    }}
-                  >
-                    <option value="all">{t('fleet.all_models')}</option>
-                    <option value="list">{t('fleet.selected_models')}</option>
-                  </select>
+                <label className={mode === 'list' ? styles.grantOptionActive : styles.grantOption}>
+                  <input
+                    type="radio"
+                    name="fleet-grant"
+                    checked={mode === 'list'}
+                    onChange={() => setMode('list')}
+                  />
+                  <span>
+                    <strong>{t('fleet.access_list_title')}</strong>
+                    <small>{t('fleet.access_list_help')}</small>
+                  </span>
                 </label>
-                {mode === 'list' && (
-                  <div className={styles.modelPicker} aria-label={t('fleet.selected_models')}>
-                    <label className={styles.search}>
-                      {t('fleet.search_models')}
-                      <input
-                        value={filter}
-                        onChange={(event) => setFilter(event.target.value)}
-                        type="search"
-                      />
-                    </label>
+              </fieldset>
+              {mode === 'list' && (
+                <div className={styles.modelPicker} aria-label={t('fleet.selected_models')}>
+                  <label className={styles.search}>
+                    <span>{t('fleet.search_models')}</span>
+                    <input
+                      value={filter}
+                      onChange={(event) => setFilter(event.target.value)}
+                      type="search"
+                      placeholder={t('fleet.model_search_placeholder')}
+                    />
+                  </label>
+                  <div className={styles.pickerList}>
                     {models.map((model) => (
-                      <label key={model}>
+                      <label className={styles.pickerRow} key={model}>
                         <input
                           type="checkbox"
                           checked={selectedModels.includes(model)}
@@ -575,31 +677,42 @@ function FleetAccess() {
                         <code>{model}</code>
                       </label>
                     ))}
-                    <label className={styles.search}>
-                      {t('fleet.model_rules')}
-                      <textarea
-                        value={manualModelRules}
-                        onChange={(event) => setManualModelRules(event.target.value)}
-                        placeholder="openai/"
-                      />
-                    </label>
+                    {models.length === 0 && (
+                      <p className={styles.muted}>{t('fleet.no_matching_models')}</p>
+                    )}
                   </div>
-                )}
+                  <label className={styles.field}>
+                    <span>{t('fleet.model_rules')}</span>
+                    <textarea
+                      value={manualModelRules}
+                      onChange={(event) => setManualModelRules(event.target.value)}
+                      placeholder="openai/"
+                    />
+                  </label>
+                </div>
+              )}
+              <div className={styles.formActions}>
+                <span className={styles.formHint}>
+                  {mode === 'all' ? t('fleet.access_includes_new') : t('fleet.new_models_excluded')}
+                </span>
                 <button
                   type="submit"
-                  disabled={
-                    busy ||
-                    (mode === 'list' && selectedModels.length === 0 && !manualModelRules.trim())
-                  }
+                  className={styles.primaryButton}
+                  disabled={busy || listModeInvalid}
                 >
-                  {t('fleet.create_key')}
+                  {busy ? t('fleet.create_key_busy') : t('fleet.create_key')}
                 </button>
-              </form>
-            </section>
-          )}
+              </div>
+            </form>
+          </section>
           {keys && (
             <section className={styles.panel}>
-              <h2>{t('fleet.managed_keys')}</h2>
+              <div className={styles.sectionHead}>
+                <div>
+                  <h2>{t('fleet.managed_keys')}</h2>
+                  <p>{t('fleet.managed_keys_help')}</p>
+                </div>
+              </div>
               {keys.keys.length === 0 ? (
                 <p className={styles.muted}>{t('fleet.no_keys')}</p>
               ) : (
@@ -609,7 +722,7 @@ function FleetAccess() {
                     return (
                       <article className={styles.keyCard} key={key.id}>
                         <div className={styles.keyHead}>
-                          <div>
+                          <div className={styles.keyIdentity}>
                             <strong>{key.name}</strong>
                             <code>{key.prefix}</code>
                           </div>
@@ -623,16 +736,43 @@ function FleetAccess() {
                                 : t('fleet.missing')}
                           </span>
                         </div>
-                        <p className={styles.muted}>
-                          {key.mode === 'all'
-                            ? t('fleet.grant_all')
-                            : t('fleet.grant_models', { count: key.model_count })}{' '}
-                          · {new Date(key.created_at).toLocaleDateString()}
-                        </p>
+                        <div className={styles.keyAccess}>
+                          {key.mode === 'all' ? (
+                            <span className={styles.accessAll}>
+                              <span className={styles.accessDot} />
+                              {t('fleet.grant_all')}
+                              <small>{t('fleet.access_includes_new')}</small>
+                            </span>
+                          ) : (
+                            <span className={styles.accessList}>
+                              {t('fleet.grant_models', { count: key.model_count })}
+                              <small>{t('fleet.new_models_excluded')}</small>
+                            </span>
+                          )}
+                          <span className={styles.keyMeta}>
+                            {t('fleet.key_created', {
+                              value: new Date(key.created_at).toLocaleDateString(),
+                            })}
+                          </span>
+                          {key.mode === 'list' && !draft && (
+                            <button
+                              type="button"
+                              className={styles.linkButton}
+                              disabled={busy}
+                              onClick={() =>
+                                void mutate(() =>
+                                  fleetApi.updateKey({ id: key.id, mode: 'all', models: [] })
+                                )
+                              }
+                            >
+                              {t('fleet.allow_all')}
+                            </button>
+                          )}
+                        </div>
                         {draft ? (
                           <div className={styles.editForm}>
-                            <label>
-                              {t('fleet.key_name')}
+                            <label className={styles.field}>
+                              <span>{t('fleet.key_name')}</span>
                               <input
                                 value={draft.name}
                                 onChange={(event) =>
@@ -643,8 +783,8 @@ function FleetAccess() {
                                 }
                               />
                             </label>
-                            <label>
-                              {t('fleet.grant_mode')}
+                            <label className={styles.field}>
+                              <span>{t('fleet.grant_mode')}</span>
                               <select
                                 value={draft.mode}
                                 onChange={(event) => {
@@ -661,8 +801,8 @@ function FleetAccess() {
                               </select>
                             </label>
                             {draft.mode === 'list' && (
-                              <label>
-                                {t('fleet.model_rules')}
+                              <label className={styles.field} style={{ flexBasis: '100%' }}>
+                                <span>{t('fleet.model_rules')}</span>
                                 <textarea
                                   value={draft.models}
                                   onChange={(event) =>
@@ -674,37 +814,38 @@ function FleetAccess() {
                                 />
                               </label>
                             )}
-                            <button
-                              type="button"
-                              disabled={busy}
-                              onClick={() =>
-                                void mutate(() =>
-                                  fleetApi.updateKey({
-                                    id: key.id,
-                                    name: draft.name,
-                                    mode: draft.mode,
-                                    models:
-                                      draft.mode === 'list'
-                                        ? parseModelGrantRules(draft.models)
-                                        : [],
+                            <div className={styles.formActions}>
+                              <button
+                                type="button"
+                                className={styles.primaryButton}
+                                disabled={busy}
+                                onClick={() =>
+                                  void mutate(() =>
+                                    fleetApi.updateKey({
+                                      id: key.id,
+                                      name: draft.name,
+                                      mode: draft.mode,
+                                      models: grantModelsFor(draft.mode, draft.models),
+                                    })
+                                  )
+                                }
+                              >
+                                {t('fleet.save')}
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.linkButton}
+                                onClick={() =>
+                                  setEditDrafts((current) => {
+                                    const next = { ...current };
+                                    delete next[key.id];
+                                    return next;
                                   })
-                                )
-                              }
-                            >
-                              {t('fleet.save')}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setEditDrafts((current) => {
-                                  const next = { ...current };
-                                  delete next[key.id];
-                                  return next;
-                                })
-                              }
-                            >
-                              {t('fleet.cancel')}
-                            </button>
+                                }
+                              >
+                                {t('fleet.cancel')}
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <div className={styles.actions}>
