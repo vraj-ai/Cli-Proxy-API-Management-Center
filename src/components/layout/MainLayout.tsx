@@ -18,6 +18,7 @@ import { PageTransition } from '@/components/common/PageTransition';
 import { MainRoutes } from '@/router/MainRoutes';
 import { authFilesApi, pluginsApi } from '@/services/api';
 import {
+  IconKey,
   IconSidebarAuthFiles,
   IconSidebarConfig,
   IconSidebarDashboard,
@@ -58,6 +59,7 @@ const sidebarIcons: Record<string, ReactNode> = {
   quickStart: <IconSidebarQuickStart size={18} />,
   aiProviders: <IconSidebarProviders size={18} />,
   authFiles: <IconSidebarAuthFiles size={18} />,
+  access: <IconKey size={18} />,
   oauth: <IconSidebarOauth size={18} />,
   quota: <IconSidebarQuota size={18} />,
   plugins: <IconSidebarPlugins size={18} />,
@@ -550,37 +552,39 @@ export function MainLayout() {
   }, []);
 
   const pluginPageNavItems: SidebarNavItem[] = supportsPlugin
-    ? pluginResourceGroups.filter((group) => !isFleetPlugin(group.pluginID)).flatMap((group): SidebarNavItem[] => {
-        if (group.entries.length === 1) {
-          const resource = group.entries[0];
-          const pluginLogo = resolvePluginAssetURL(resource.pluginLogo, apiBase);
+    ? pluginResourceGroups
+        .filter((group) => !isFleetPlugin(group.pluginID))
+        .flatMap((group): SidebarNavItem[] => {
+          if (group.entries.length === 1) {
+            const resource = group.entries[0];
+            const pluginLogo = resolvePluginAssetURL(resource.pluginLogo, apiBase);
+            return [
+              {
+                path: resource.route,
+                label: resource.label,
+                meta: resource.description,
+                icon: <PluginSidebarIcon src={pluginLogo} />,
+              },
+            ];
+          }
+
+          const pluginLogo = resolvePluginAssetURL(group.entries[0]?.pluginLogo ?? '', apiBase);
           return [
             {
-              path: resource.route,
-              label: resource.label,
-              meta: resource.description,
+              kind: 'drawer',
+              id: `plugin-pages-${group.pluginID}`,
+              label: group.pluginTitle,
+              meta: t('plugin_resource.page_count', { count: group.entries.length }),
               icon: <PluginSidebarIcon src={pluginLogo} />,
+              children: group.entries.map((resource) => ({
+                path: resource.route,
+                label: resource.label,
+                meta: resource.description,
+                icon: <span className="nav-sub-dot" aria-hidden="true" />,
+              })),
             },
           ];
-        }
-
-        const pluginLogo = resolvePluginAssetURL(group.entries[0]?.pluginLogo ?? '', apiBase);
-        return [
-          {
-            kind: 'drawer',
-            id: `plugin-pages-${group.pluginID}`,
-            label: group.pluginTitle,
-            meta: t('plugin_resource.page_count', { count: group.entries.length }),
-            icon: <PluginSidebarIcon src={pluginLogo} />,
-            children: group.entries.map((resource) => ({
-              path: resource.route,
-              label: resource.label,
-              meta: resource.description,
-              icon: <span className="nav-sub-dot" aria-hidden="true" />,
-            })),
-          },
-        ];
-      })
+        })
     : [];
 
   const isApiKeyFunConfigured = hasApiKeyFunConfig(config);
@@ -594,7 +598,7 @@ export function MainLayout() {
 
   const navGroups: SidebarNavGroup[] = [
     {
-      id: 'overview',
+      id: 'fleet',
       labelKey: 'fleet.group_overview',
       items: [
         {
@@ -604,12 +608,41 @@ export function MainLayout() {
           icon: sidebarIcons.dashboard,
         },
         {
+          path: '/fleet/access',
+          labelKey: 'fleet.nav_access',
+          metaKey: 'fleet.description_access',
+          icon: sidebarIcons.access,
+        },
+        {
+          path: '/fleet/activity',
+          labelKey: 'fleet.nav_activity',
+          metaKey: 'fleet.description_activity',
+          icon: sidebarIcons.logs,
+        },
+      ],
+    },
+    {
+      id: 'traffic',
+      labelKey: 'fleet.group_activity',
+      items: [
+        {
           path: '/dashboard',
           labelKey: 'nav.dashboard',
           metaKey: 'nav_meta.dashboard',
           icon: sidebarIcons.dashboard,
         },
-        ...(!isApiKeyFunConfigured ? [quickStartNavItem] : []),
+        {
+          path: '/quota',
+          labelKey: 'nav.quota_management',
+          metaKey: 'nav_meta.quota_management',
+          icon: sidebarIcons.quota,
+        },
+        {
+          path: '/logs',
+          labelKey: 'nav.logs',
+          metaKey: 'nav_meta.logs',
+          icon: sidebarIcons.logs,
+        },
       ],
     },
     {
@@ -639,43 +672,7 @@ export function MainLayout() {
           metaKey: 'nav_meta.oauth',
           icon: sidebarIcons.oauth,
         },
-        ...(isApiKeyFunConfigured ? [quickStartNavItem] : []),
-      ],
-    },
-    {
-      id: 'access',
-      labelKey: 'fleet.group_access',
-      items: [
-        {
-          path: '/fleet/access',
-          labelKey: 'fleet.nav_access',
-          metaKey: 'fleet.description_access',
-          icon: sidebarIcons.authFiles,
-        },
-      ],
-    },
-    {
-      id: 'activity',
-      labelKey: 'fleet.group_activity',
-      items: [
-        {
-          path: '/fleet/activity',
-          labelKey: 'fleet.nav_activity',
-          metaKey: 'fleet.description_activity',
-          icon: sidebarIcons.logs,
-        },
-        {
-          path: '/quota',
-          labelKey: 'nav.quota_management',
-          metaKey: 'nav_meta.quota_management',
-          icon: sidebarIcons.quota,
-        },
-        {
-          path: '/logs',
-          labelKey: 'nav.logs',
-          metaKey: 'nav_meta.logs',
-          icon: sidebarIcons.logs,
-        },
+        quickStartNavItem,
       ],
     },
     {
@@ -1053,6 +1050,12 @@ export function MainLayout() {
           </Button>
         </div>
 
+        <div className="header-status" title={apiBase}>
+          <span className="header-status-dot" aria-hidden="true" />
+          <strong>{t(`common.${connectionStatus}_status`)}</strong>
+          <code>{apiBase.replace(/^https?:\/\//, '')}</code>
+        </div>
+
         <div className="header-actions floating-actions">
           <Button
             variant="ghost"
@@ -1190,7 +1193,23 @@ export function MainLayout() {
         >
           <div className="sidebar-header">
             <div className="sidebar-brand" title={fullBrandName}>
-              <span className="sidebar-brand-logo" aria-hidden="true">F</span>
+              <span className="sidebar-brand-logo" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3.5 6h4.7l4.3 6h8" />
+                  <path d="M3.5 12h5.2" />
+                  <path d="M3.5 18h4.7l4.3-6" />
+                  <circle cx="20.5" cy="12" r={1.9} fill="currentColor" stroke="none" />
+                </svg>
+              </span>
               {showSidebarLabels && (
                 <span className="sidebar-brand-text">
                   <span className="sidebar-brand-title">{abbrBrandName}</span>
