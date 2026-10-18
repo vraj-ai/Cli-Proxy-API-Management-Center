@@ -1,13 +1,13 @@
 @use './variables.scss' as *;
 
 :root {
-  --header-height: 80px;
+  --header-height: 56px;
   --shell-gutter: 24px;
-  --sidebar-panel-width: 216px;
+  --sidebar-panel-width: 232px;
   --sidebar-collapsed-width: 60px;
   --sidebar-active-width: var(--sidebar-panel-width);
   --sidebar-gap: 0px;
-  --floating-control-size: 38px;
+  --floating-control-size: 30px;
 }
 
 .app-shell {
@@ -83,27 +83,28 @@
   position: fixed;
   top: 0;
   right: 0;
-  left: 0;
+  left: var(--sidebar-active-width);
   z-index: $z-dropdown + 1;
   height: var(--header-height);
   pointer-events: none;
-  background: transparent;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
   border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+  transition: left $transition-normal;
 
   .sidebar-toggle-floating {
     position: fixed;
     top: 50%;
-    left: calc(var(--sidebar-active-width) - 12px);
-    width: 24px;
-    height: 52px;
+    left: calc(var(--sidebar-active-width) - 1px);
+    width: 18px;
+    height: 44px;
     padding: 0;
-    border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
-    border-radius: 14px;
-    background: var(--bg-primary);
-    color: color-mix(in srgb, var(--text-secondary) 88%, transparent);
-    box-shadow:
-      4px 0 14px rgb(0 0 0 / 0.18),
-      inset 0 1px 0 rgb(255 255 255 / 0.03);
+    border: 1px solid var(--rail-border);
+    border-left: 0;
+    border-radius: 0 5px 5px 0;
+    background: var(--rail-bg);
+    color: var(--rail-muted);
+    box-shadow: none;
     cursor: pointer;
     pointer-events: auto;
     display: inline-flex;
@@ -114,52 +115,72 @@
       background $transition-fast,
       border-color $transition-fast,
       color $transition-fast,
-      transform $transition-fast,
       left $transition-normal;
 
     svg {
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
     }
 
     &:hover {
-      background: color-mix(in srgb, var(--bg-primary) 90%, var(--text-primary) 10%);
-      border-color: color-mix(in srgb, var(--border-hover) 86%, transparent);
-      color: var(--text-primary);
-      transform: translateY(-50%) translateX(2px);
+      background: var(--rail-bg-elevated);
+      color: var(--rail-text);
     }
 
     &:active {
-      transform: translateY(-50%) translateX(0);
+      background: var(--rail-active);
     }
 
     &:focus-visible {
-      outline: none;
-      box-shadow:
-        0 0 0 2px color-mix(in srgb, var(--primary-color) 24%, transparent),
-        4px 0 14px rgb(0 0 0 / 0.18);
+      outline: 2px solid var(--rail-accent);
+      outline-offset: -2px;
     }
   }
 
   .mobile-sidebar-actions,
   .header-actions {
     position: absolute;
-    top: var(--shell-gutter);
+    top: 50%;
+    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 6px;
-    border: 1px solid color-mix(in srgb, var(--border-color) 68%, transparent);
-    border-radius: 16px;
-    background: color-mix(in srgb, var(--bg-primary) 68%, transparent);
+    gap: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--text-secondary);
-    box-shadow:
-      0 18px 44px rgb(0 0 0 / 0.17),
-      inset 0 1px 0 rgb(255 255 255 / 0.04);
-    --glass-blur: 16px;
-    backdrop-filter: var(--glass-backdrop-filter);
-    -webkit-backdrop-filter: var(--glass-backdrop-filter);
+    box-shadow: none;
     pointer-events: auto;
+  }
+
+  .header-status {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-family: $font-mono;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    pointer-events: auto;
+    user-select: text;
+
+    .header-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success-color);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-color) 16%, transparent);
+    }
+
+    strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
   }
 
   .mobile-sidebar-actions {
@@ -168,7 +189,15 @@
   }
 
   .header-actions {
-    right: var(--shell-gutter);
+    right: 18px;
+  }
+
+  .header-actions::before {
+    content: '';
+    width: 1px;
+    height: 18px;
+    margin-right: 6px;
+    background: color-mix(in srgb, var(--border-color) 86%, transparent);
   }
 
   .mobile-sidebar-actions .btn,
@@ -177,7 +206,7 @@
     height: var(--floating-control-size);
     min-width: var(--floating-control-size);
     padding: 0;
-    border-radius: 11px;
+    border-radius: 5px;
     background: transparent;
     color: var(--text-secondary);
     border-color: transparent;
@@ -190,14 +219,14 @@
     }
 
     &:hover {
-      background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+      background: var(--bg-tertiary);
       color: var(--text-primary);
       border-color: transparent;
     }
 
     &:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 26%, transparent);
+      outline: 2px solid var(--focus-ring-color);
+      outline-offset: 1px;
     }
   }
 
@@ -397,15 +426,16 @@
   z-index: $z-dropdown - 1;
   width: var(--sidebar-panel-width);
   height: 100vh;
-  padding: 14px 10px;
+  padding: 0 12px 14px;
   display: flex;
   flex-direction: column;
   gap: $spacing-sm;
   flex-shrink: 0;
   overflow-y: auto;
-  background: var(--bg-primary);
+  background: var(--rail-bg);
+  color: var(--rail-text);
   border: 0;
-  border-right: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+  border-right: 1px solid var(--rail-border);
   border-radius: 0;
   box-shadow: none;
   scrollbar-width: none;
@@ -424,7 +454,7 @@
 
   &.collapsed {
     width: var(--sidebar-collapsed-width);
-    padding: 14px 8px;
+    padding: 0 8px 14px;
 
     .sidebar-header {
       justify-content: center;
@@ -453,9 +483,9 @@
       padding: 0 4px;
       border-radius: $radius-full;
       font-size: 9px;
-      color: var(--bg-primary);
-      background: var(--text-primary);
-      box-shadow: 0 0 0 2px var(--bg-primary);
+      color: var(--rail-bg);
+      background: var(--rail-accent);
+      box-shadow: 0 0 0 2px var(--rail-bg);
     }
 
     .nav-group-label {
@@ -481,10 +511,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 36px;
-    padding: 2px 2px 10px;
-    margin-bottom: 2px;
-    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    min-height: 56px;
+    padding: 14px 6px 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--rail-border);
     flex-shrink: 0;
   }
 
@@ -494,70 +524,76 @@
     gap: 10px;
     min-width: 0;
     flex: 1;
-    padding: 0 6px;
-    color: var(--text-primary);
+    padding: 0;
+    color: var(--rail-text);
   }
 
   .sidebar-brand-logo {
     display: grid;
     place-items: center;
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--border-color);
-    border-radius: 7px;
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 750;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--rail-border);
+    border-radius: 6px;
+    background: var(--rail-bg-elevated);
+    color: var(--rail-accent);
     flex-shrink: 0;
   }
 
   .sidebar-brand-text {
     display: flex;
     flex-direction: column;
+    gap: 3px;
     min-width: 0;
-    line-height: 1.15;
+    line-height: 1;
   }
 
   .sidebar-brand-title {
     min-width: 0;
     overflow: hidden;
-    color: var(--text-primary);
-    font-size: 15px;
-    font-weight: 800;
-    letter-spacing: 0;
+    color: var(--rail-text);
+    font-size: 13px;
+    font-weight: 600;
+    font-stretch: 116%;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
     white-space: nowrap;
   }
 
   .sidebar-brand-subtitle {
-    margin-top: 1px;
     overflow: hidden;
-    font-size: 10.5px;
+    color: var(--rail-muted);
+    font-family: $font-mono;
+    font-size: 9px;
     font-weight: 500;
-    color: var(--text-secondary);
+    letter-spacing: 0.12em;
     text-overflow: ellipsis;
+    text-transform: uppercase;
     white-space: nowrap;
   }
 
   .nav-section {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px;
     flex: 1;
+    padding-top: 12px;
   }
 
   .nav-group {
     display: flex;
     flex-direction: column;
-    gap: $spacing-xs;
+    gap: 2px;
   }
 
   .nav-group-label {
-    padding: 0 10px 2px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    padding: 0 10px 5px;
+    color: var(--rail-muted);
+    font-family: $font-mono;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--text-primary) 42%, transparent);
     user-select: none;
   }
 
@@ -566,7 +602,7 @@
     height: 1px;
     width: 24px;
     margin: 4px auto;
-    background: color-mix(in srgb, var(--border-color) 70%, transparent);
+    background: var(--rail-border);
   }
 
   .nav-drawer {
@@ -584,7 +620,7 @@
 
   .nav-drawer-caret {
     margin-left: auto;
-    color: color-mix(in srgb, var(--text-primary) 46%, transparent);
+    color: var(--rail-muted);
     line-height: 0;
     transition: transform $transition-fast;
   }
@@ -599,16 +635,16 @@
     gap: 2px;
     margin-left: 18px;
     padding-left: 10px;
-    border-left: 1px solid color-mix(in srgb, var(--border-color) 72%, transparent);
+    border-left: 1px solid var(--rail-border);
   }
 
   .nav-item {
-    padding: 6px 10px;
-    border-radius: 9px;
+    padding: 7px 10px;
+    border-radius: 5px;
     border: 1px solid transparent;
-    color: var(--text-primary);
+    color: color-mix(in srgb, var(--rail-text) 86%, transparent);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -616,9 +652,7 @@
     cursor: pointer;
     transition:
       background $transition-fast,
-      border-color $transition-fast,
-      color $transition-fast,
-      transform $transition-fast;
+      color $transition-fast;
 
     .nav-icon {
       width: 18px;
@@ -627,7 +661,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      color: color-mix(in srgb, var(--text-primary) 58%, transparent);
+      color: var(--rail-muted);
       transition: color $transition-fast;
 
       svg {
@@ -640,7 +674,7 @@
         display: block;
         width: 16px;
         height: 16px;
-        border-radius: 4px;
+        border-radius: 3px;
         object-fit: cover;
       }
     }
@@ -669,10 +703,11 @@
       justify-content: center;
       flex-shrink: 0;
       border-radius: $radius-full;
-      background: color-mix(in srgb, var(--text-primary) 9%, transparent);
-      color: var(--text-primary);
-      font-size: 10.5px;
-      font-weight: 700;
+      background: var(--rail-active);
+      color: var(--rail-text);
+      font-family: $font-mono;
+      font-size: 10px;
+      font-weight: 500;
       line-height: 1;
     }
 
@@ -689,32 +724,30 @@
     }
 
     &:hover {
-      background: color-mix(in srgb, var(--text-primary) 7%, transparent);
-      border-color: color-mix(in srgb, var(--border-color) 58%, transparent);
-      transform: translateX(1px);
+      background: var(--rail-hover);
+      color: var(--rail-text);
 
       .nav-icon {
-        color: color-mix(in srgb, var(--text-primary) 82%, transparent);
+        color: var(--rail-text);
       }
     }
 
     &.active {
-      background: color-mix(in srgb, var(--text-primary) 10%, transparent);
-      color: var(--text-primary);
-      border-color: color-mix(in srgb, var(--border-hover) 70%, transparent);
-      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+      background: var(--rail-active);
+      color: var(--rail-text);
+      box-shadow: inset 2px 0 0 var(--rail-accent);
 
       .nav-icon {
-        color: var(--primary-active);
+        color: var(--rail-accent);
       }
     }
 
     &.nav-sub-item {
       min-height: 30px;
       padding: 5px 10px;
-      border-radius: 8px;
+      border-radius: 4px;
       font-size: 12.5px;
-      font-weight: 600;
+      font-weight: 450;
 
       .nav-icon {
         width: 16px;
@@ -810,7 +843,7 @@
 .main-content {
   flex: 1 0 auto;
   min-height: 100%;
-  padding: 70px clamp(20px, 3vw, 48px) 40px;
+  padding: calc(var(--header-height) + 22px) clamp(20px, 3vw, 48px) 56px;
   display: flex;
   flex-direction: column;
   gap: $spacing-lg;
@@ -841,10 +874,10 @@
 
 @media (max-width: $breakpoint-mobile) {
   :root {
-    --header-height: 74px;
+    --header-height: 56px;
     --shell-gutter: 12px;
     --sidebar-panel-width: min(280px, calc(100vw - 24px));
-    --floating-control-size: 36px;
+    --floating-control-size: 32px;
   }
 
   .top-gradient-blur {
@@ -856,28 +889,38 @@
   }
 
   .main-header {
+    left: 0;
+
     .sidebar-toggle-floating {
       display: none;
     }
 
+    .header-status {
+      display: none;
+    }
+
     .header-actions {
-      top: var(--shell-gutter);
+      top: 50%;
       right: var(--shell-gutter);
       max-width: calc(
         100vw - var(--shell-gutter) - var(--shell-gutter) - var(--floating-control-size) - 14px
       );
-      padding: 5px;
+      padding: 0;
       gap: 2px;
-      border-radius: 14px;
+      border-radius: 0;
+    }
+
+    .header-actions::before {
+      display: none;
     }
 
     .mobile-sidebar-actions {
       display: inline-flex;
-      top: var(--shell-gutter);
+      top: 50%;
       left: var(--shell-gutter);
-      padding: 5px;
+      padding: 0;
       gap: 2px;
-      border-radius: 14px;
+      border-radius: 0;
     }
 
     .mobile-menu-btn {
@@ -944,9 +987,9 @@
     width: var(--sidebar-panel-width);
     height: auto;
     transform: translateX(calc(-100% - 24px));
-    background: var(--bg-primary);
+    background: var(--rail-bg);
     border: 0;
-    border-right: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
+    border-right: 1px solid var(--rail-border);
     border-radius: 0;
     box-shadow: none;
 
@@ -956,7 +999,7 @@
 
     &.collapsed {
       width: var(--sidebar-panel-width);
-      padding: 14px 10px;
+      padding: 0 12px 14px;
 
       .sidebar-brand,
       .nav-item {
@@ -970,8 +1013,8 @@
         margin-left: auto;
         padding: 0 5px;
         font-size: 10.5px;
-        color: var(--text-primary);
-        background: color-mix(in srgb, var(--text-primary) 9%, transparent);
+        color: var(--rail-text);
+        background: var(--rail-active);
         box-shadow: none;
       }
     }

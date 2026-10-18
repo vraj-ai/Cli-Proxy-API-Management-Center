@@ -21,9 +21,68 @@ body {
 body {
   margin: 0;
   font-family: $font-family;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: $font-family;
+  font-weight: 620;
+  font-stretch: 108%;
+  letter-spacing: -0.028em;
+  line-height: 1.14;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(28px, 3.4vw, 38px);
+}
+
+h2 {
+  font-size: 19px;
+}
+
+h3 {
+  font-size: 15px;
+}
+
+code,
+kbd,
+samp,
+pre,
+time {
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+input,
+textarea {
+  font-size: 14px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent-color) 24%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
 }
 
 #root {

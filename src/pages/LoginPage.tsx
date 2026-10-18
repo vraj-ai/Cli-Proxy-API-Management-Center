@@ -163,7 +163,6 @@ export function LoginPage() {
         managementKey: managementKey.trim(),
         rememberPassword,
       });
-      showNotification(t('common.connected_status'), 'success');
       navigate('/', { replace: true });
     } catch (err: unknown) {
       const message = getLocalizedErrorMessage(err, t);
@@ -205,8 +204,34 @@ export function LoginPage() {
       {/* 左侧品牌展示区 */}
       <div className={styles.brandPanel}>
         <div className={styles.brandContent}>
+          <span className={styles.brandMark} aria-hidden="true">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3.5 6h4.7l4.3 6h8" />
+              <path d="M3.5 12h5.2" />
+              <path d="M3.5 18h4.7l4.3-6" />
+              <circle cx="20.5" cy="12" r={1.9} fill="currentColor" stroke="none" />
+            </svg>
+          </span>
           <span className={styles.brandWord}>FLEET</span>
+          <p className={styles.brandLine}>{t('login.brand_line')}</p>
+          <div className={styles.brandDiagram} aria-hidden="true">
+            <span>providers</span>
+            <span className={styles.brandNode} />
+            <span>one link</span>
+            <span className={styles.brandNode} />
+            <span>clients</span>
+          </div>
         </div>
+        <div className={styles.brandFooter}>{t('login.brand_footer')}</div>
       </div>
 
       {/* 右侧功能交互区 */}
@@ -224,12 +249,10 @@ export function LoginPage() {
         ) : (
           /* 登录表单 */
           <div className={styles.formContent}>
-            {/* Logo */}
-            <img src={INLINE_LOGO_JPEG} alt="Logo" className={styles.logo} />
-
             {/* 登录表单卡片 */}
             <div className={styles.loginCard}>
               <div className={styles.loginHeader}>
+                <div className={styles.eyebrow}>{t('login.eyebrow')}</div>
                 <div className={styles.titleRow}>
                   <div className={styles.title}>{t('title.login')}</div>
                   <Select
@@ -280,6 +303,7 @@ export function LoginPage() {
                 value={managementKey}
                 onChange={(e) => setManagementKey(e.target.value)}
                 onKeyDown={handleSubmitKeyDown}
+                hint={t('login.management_key_hint')}
                 rightElement={
                   <button
                     type="button"

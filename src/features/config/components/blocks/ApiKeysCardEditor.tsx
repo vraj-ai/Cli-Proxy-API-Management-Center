@@ -1,4 +1,5 @@
 import { memo, useId, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -122,57 +123,68 @@ export const ApiKeysCardEditor = memo(function ApiKeysCardEditor({
   return (
     <div className="form-group" style={{ marginBottom: 0 }}>
       <div className={styles.blockHeaderRow}>
-        <label style={{ margin: 0 }}>{t('config_management.visual.api_keys.label')}</label>
-        <Button size="sm" onClick={openAddModal} disabled={disabled}>
-          {t('config_management.visual.api_keys.add')}
-        </Button>
+        <div className={styles.headerLabelGroup}>
+          <label style={{ margin: 0 }}>{t('config_management.visual.api_keys.label')}</label>
+          {apiKeys.length > 0 && <span className={styles.countBadge}>{apiKeys.length}</span>}
+        </div>
+        <div className={styles.headerActions}>
+          <Link to="/fleet/access" className="btn btn-primary btn-sm">
+            {t('config_management.visual.api_keys.open_fleet_access')}
+          </Link>
+          <Button variant="secondary" size="sm" onClick={openAddModal} disabled={disabled}>
+            {t('config_management.visual.api_keys.add')}
+          </Button>
+        </div>
       </div>
 
       {apiKeys.length === 0 ? (
-        <div className={styles.emptyState}>{t('config_management.visual.api_keys.empty')}</div>
-      ) : (
-        <div className="item-list" style={{ marginTop: 4 }}>
-          {apiKeys.map((key, index) => (
-            <div key={renderApiKeyIds[index] ?? `${key}-${index}`} className="item-row">
-              <div className="item-meta">
-                <div className="pill">#{index + 1}</div>
-                <div className="item-title">
-                  {t('config_management.visual.api_keys.input_label')}
-                </div>
-                <div className="item-subtitle">{maskApiKey(String(key || ''))}</div>
-              </div>
-              <div className="item-actions">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleCopy(key)}
-                  disabled={disabled}
-                >
-                  {t('common.copy')}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => openEditModal(renderApiKeyIds[index] ?? '')}
-                  disabled={disabled}
-                >
-                  {t('config_management.visual.common.edit')}
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleDelete(renderApiKeyIds[index] ?? '')}
-                  disabled={disabled}
-                >
-                  {t('config_management.visual.common.delete')}
-                </Button>
-              </div>
-            </div>
-          ))}
+        <div className={styles.emptyState}>
+          <div>{t('config_management.visual.api_keys.empty')}</div>
+          <div className={`hint ${styles.emptyStateHint}`}>
+            {t('config_management.visual.api_keys.hint')}
+          </div>
         </div>
+      ) : (
+        <>
+          <div className="item-list" style={{ marginTop: 4 }}>
+            {apiKeys.map((key, index) => (
+              <div key={renderApiKeyIds[index] ?? `${key}-${index}`} className="item-row">
+                <div className="item-meta">
+                  <div className="pill">#{index + 1}</div>
+                  <div className={styles.maskedKey}>{maskApiKey(String(key || ''))}</div>
+                </div>
+                <div className="item-actions">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => handleCopy(key)}
+                    disabled={disabled}
+                  >
+                    {t('common.copy')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => openEditModal(renderApiKeyIds[index] ?? '')}
+                    disabled={disabled}
+                  >
+                    {t('config_management.visual.common.edit')}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleDelete(renderApiKeyIds[index] ?? '')}
+                    disabled={disabled}
+                  >
+                    {t('config_management.visual.common.delete')}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hint">{t('config_management.visual.api_keys.hint')}</div>
+        </>
       )}
-
-      <div className="hint">{t('config_management.visual.api_keys.hint')}</div>
 
       <Modal
         open={modalOpen}

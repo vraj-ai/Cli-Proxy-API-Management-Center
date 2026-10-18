@@ -83,6 +83,36 @@
   line-height: 1.4;
 }
 
+.headerLabelGroup {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-family: $font-mono;
+  font-size: 10.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
 .actionRow {
   display: flex;
   justify-content: flex-end;
@@ -95,6 +125,11 @@
   color: var(--text-secondary);
   text-align: center;
   background: transparent;
+}
+
+.emptyStateHint {
+  margin-top: 6px;
+  font-size: 12px;
 }
 
 /* ---------- 规则卡 ---------- */
@@ -140,6 +175,13 @@
 }
 
 /* ---------- API 密钥弹窗 ---------- */
+
+.maskedKey {
+  font-family: $font-mono;
+  font-size: 13px;
+  color: var(--text-secondary);
+  word-break: break-all;
+}
 
 .apiKeyModalInputRow {
   display: flex;
@@ -413,6 +455,10 @@
   .apiKeyModalInputRow {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .headerActions {
+    width: 100%;
   }
 
   .payloadRowActionButton {

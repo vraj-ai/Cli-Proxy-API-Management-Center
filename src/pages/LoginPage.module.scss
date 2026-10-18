@@ -1,207 +1,258 @@
 @use '../styles/variables.scss' as *;
 
-// 主容器 - 左右分栏布局
 .container {
   min-height: 100vh;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   background: var(--bg-secondary);
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 // 左侧品牌展示区
 .brandPanel {
-  flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background: #000000;
-  padding: $spacing-2xl;
-  position: relative;
+  justify-content: space-between;
+  padding: clamp(32px, 5vw, 64px);
   overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 82% 14%,
+      color-mix(in srgb, var(--rail-accent) 22%, transparent),
+      transparent 46%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 63px,
+      rgb(255 255 255 / 0.045) 63px,
+      rgb(255 255 255 / 0.045) 64px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 63px,
+      rgb(255 255 255 / 0.045) 63px,
+      rgb(255 255 255 / 0.045) 64px
+    ),
+    var(--rail-bg);
+  color: var(--rail-text);
 
-  // 移动端隐藏
-  @media (max-width: $breakpoint-mobile) {
+  @media (max-width: 900px) {
     display: none;
   }
 }
 
-// 品牌文字容器
 .brandContent {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  width: 100%;
-  padding: 0;
+  align-items: flex-start;
+  justify-content: flex-end;
   gap: 0;
+  margin-top: auto;
 }
 
-// 品牌大字淡入动画
-@keyframes brandFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: var(--target-opacity, 0.9);
-    transform: translateY(0);
-  }
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 30px;
+  border: 1px solid var(--rail-border);
+  border-radius: 8px;
+  background: var(--rail-bg-elevated);
+  color: var(--rail-accent);
 }
 
-// 品牌大字
 .brandWord {
-  font-size: 14vw;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.9);
-  letter-spacing: -0.02em;
-  line-height: 0.85;
+  font-family: $font-family;
+  font-size: clamp(64px, 8.4vw, 124px);
+  font-weight: 620;
+  font-stretch: 118%;
+  line-height: 0.86;
+  letter-spacing: 0.015em;
+  color: var(--rail-text);
+  user-select: none;
+}
+
+.brandLine {
+  max-width: 30ch;
+  margin: 26px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--rail-text) 66%, transparent);
+  text-wrap: pretty;
+}
+
+.brandDiagram {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rail-border);
+  color: var(--rail-muted);
+  font-family: $font-mono;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-  text-align: right;
-  padding-right: 0;
-  opacity: 0;
-  animation: brandFadeIn 0.8s ease-out forwards;
 
-  // 不同字有不同的透明度和延迟，从上到下依次显现
-  &:nth-child(1) {
-    --target-opacity: 0.95;
-    animation-delay: 0.1s;
+  span:not(.brandNode) {
+    flex: 0 0 auto;
   }
+}
 
-  &:nth-child(2) {
-    --target-opacity: 0.7;
-    animation-delay: 0.35s;
-  }
+.brandNode {
+  position: relative;
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--rail-border);
 
-  &:nth-child(3) {
-    --target-opacity: 0.45;
-    animation-delay: 0.6s;
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--rail-accent);
+    transform: translateY(-50%);
   }
+}
+
+.brandFooter {
+  margin-top: 48px;
+  color: var(--rail-muted);
+  font-family: $font-mono;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 // 右侧功能交互区
 .formPanel {
-  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: $spacing-2xl;
+  padding: 40px;
   background: var(--bg-secondary);
   position: relative;
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-lg;
+  @media (max-width: 900px) {
     min-height: 100vh;
+    padding: 24px;
   }
 }
 
-// 右侧内容容器
 .formContent {
   width: 100%;
-  max-width: 420px;
+  max-width: 384px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: $spacing-xl;
+  gap: 18px;
 }
 
-// Logo
-.logo {
-  width: 80px;
-  height: 80px;
-  border-radius: $radius-lg;
-  object-fit: cover;
-  box-shadow: var(--shadow-lg);
-  border: 3px solid var(--border-color);
-}
-
-// 登录表单卡片
 .loginCard {
   width: 100%;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: $radius-lg;
-  box-shadow: var(--shadow-lg);
-  padding: $spacing-xl;
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  box-shadow: var(--shadow);
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-lg;
-    box-shadow: none;
-    border: none;
+  @media (max-width: 900px) {
+    padding: 8px 0;
+    border: 0;
     background: transparent;
+    box-shadow: none;
   }
 }
 
-// 登录头部
 .loginHeader {
   display: flex;
   flex-direction: column;
-  gap: $spacing-sm;
-  text-align: center;
+  gap: 8px;
 }
 
-// 标题行
+.eyebrow {
+  color: var(--text-tertiary);
+  font-family: $font-mono;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .titleRow {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: $spacing-sm;
   flex-wrap: wrap;
 }
 
-// 标题
 .title {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 620;
+  font-stretch: 108%;
+  letter-spacing: -0.024em;
   color: var(--text-primary);
 }
 
-// 副标题
 .subtitle {
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
 }
 
-// 语言下拉选择
 .languageSelect {
-  min-width: 108px;
+  min-width: 104px;
   flex: 0 0 auto;
 }
 
-// 连接信息框
 .connectionBox {
-  background: var(--bg-secondary);
-  border: 1px dashed var(--border-color);
-  border-radius: $radius-md;
-  padding: $spacing-md;
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
 
   .label {
-    color: var(--text-secondary);
-    font-size: 14px;
+    color: var(--text-tertiary);
+    font-family: $font-mono;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   .value {
-    font-weight: 700;
     color: var(--text-primary);
+    font-family: $font-mono;
+    font-size: 12.5px;
     word-break: break-all;
   }
 
   .hint {
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: 11.5px;
+    line-height: 1.45;
   }
 }
 
-// 复选框行
 .toggleAdvanced {
   display: flex;
   justify-content: flex-start;
@@ -210,27 +261,26 @@
 
 .toggleLabel {
   color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 450;
 }
 
-// 错误提示框
 .errorBox {
-  background: rgba($error-color, 0.1);
-  border: 1px solid rgba($error-color, 0.4);
-  border-radius: $radius-md;
-  padding: $spacing-sm $spacing-md;
-  color: $error-color;
-  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--error-color) 40%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--error-color) 9%, transparent);
+  color: var(--error-color);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 // ========== 启动动画（右侧） ==========
 
-// 启动动画进入效果
 @keyframes splashEnter {
   from {
     opacity: 0;
-    transform: scale(0.9) translateY(20px);
+    transform: scale(0.94) translateY(12px);
   }
   to {
     opacity: 1;
@@ -238,18 +288,16 @@
   }
 }
 
-// Logo 脉冲效果
 @keyframes splashLogoPulse {
   0%,
   100% {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.04);
   }
 }
 
-// 加载条动画
 @keyframes splashLoading {
   0% {
     transform: scaleX(0);
@@ -268,7 +316,6 @@
   }
 }
 
-// 启动动画内容容器
 .splashContent {
   display: flex;
   flex-direction: column;
@@ -277,48 +324,43 @@
   animation: splashEnter 0.6s ease-out;
 }
 
-// 启动动画 Logo
 .splashLogo {
-  height: 80px;
+  height: 72px;
   width: auto;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-lg;
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
   animation: splashLogoPulse 1.5s ease-in-out infinite;
 }
 
-// 启动动画标题
 .splashTitle {
+  margin: 0;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 620;
+  font-stretch: 112%;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin: 0;
-  letter-spacing: -0.5px;
 }
 
-// 启动动画副标题
 .splashSubtitle {
-  font-size: 16px;
-  font-weight: 500;
+  margin: -8px 0 0;
+  font-size: 14px;
+  font-weight: 450;
   color: var(--text-secondary);
-  margin: 0;
-  margin-top: -8px;
 }
 
-// 启动动画加载条容器
 .splashLoader {
   width: 120px;
-  height: 3px;
-  background: var(--border-color);
-  border-radius: $radius-full;
-  overflow: hidden;
+  height: 2px;
   margin-top: $spacing-md;
+  overflow: hidden;
+  border-radius: $radius-full;
+  background: var(--border-color);
 }
 
-// 启动动画加载条
 .splashLoaderBar {
   width: 100%;
   height: 100%;
-  background: var(--primary-color);
   border-radius: $radius-full;
+  background: var(--accent-color);
   animation: splashLoading 1.2s ease-in-out infinite;
 }

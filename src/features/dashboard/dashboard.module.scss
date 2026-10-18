@@ -75,7 +75,7 @@
   align-items: center;
   padding-top: clamp($spacing-md, 3vh, 40px);
   /* 底部留出脉搏线的呼吸空间 */
-  padding-bottom: clamp(64px, 11vh, 120px);
+  padding-bottom: clamp(40px, 6vh, 72px);
 
   @media (max-width: 900px) {
     grid-template-columns: minmax(0, 1fr);
@@ -89,7 +89,7 @@
   left: 0;
   right: 0;
   bottom: -10px;
-  height: clamp(88px, 15vh, 160px);
+  height: clamp(64px, 9vh, 104px);
   z-index: 0;
   pointer-events: none;
 }
