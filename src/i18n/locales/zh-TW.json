@@ -1473,7 +1473,7 @@
     "meta_loaded": "{{count}} 個已載入",
     "meta_attention": "{{count}} 個需關注",
     "empty_title": "暫無可查配額的憑證",
-    "empty_desc": "接入 Antigravity、Claude、Codex、xAI 或 Kimi 憑證後即可在此查看配額。",
+    "empty_desc": "OpenCode Go 用量會自動顯示在上方。接入 Antigravity、Claude、Codex、xAI 或 Kimi 憑證後，可在此查看依帳號的配額。",
     "windows_title": "配額視窗",
     "windows_span_weekly": "兩週",
     "windows_span_session": "三天",
@@ -2033,5 +2033,29 @@
     "modelCatalog": {
       "notLoaded": "未載入"
     }
+  },
+  "opencode_quota": {
+    "eyebrow": "OpenCode",
+    "title": "OpenCode Go",
+    "description": "OpenCode Go 模型的用量限制。",
+    "plan": "Go",
+    "stale": "資料過期",
+    "session": "工作階段",
+    "session_share": "月額度的 20%",
+    "weekly": "每週",
+    "weekly_share": "月額度的 50%",
+    "monthly": "每月",
+    "monthly_share": "完整月額度",
+    "left": "剩餘 {{value}}",
+    "used": "已用 {{value}}",
+    "reset": "{{value}} 重設",
+    "reset_unknown": "重設時間未知",
+    "source": "來源 · OpenUsage",
+    "plan_note": "視窗：月額度的 20% / 50% / 100%",
+    "empty_title": "尚無 OpenCode 用量",
+    "empty_desc": "OpenUsage 未回傳 OpenCode Go 視窗。請在 OpenCode 控制台更換金鑰，然後重新整理。",
+    "unavailable_title": "OpenCode 用量不可用",
+    "unavailable_desc": "Fleet 外掛未回傳此代理的額度狀態。",
+    "open_console": "OpenCode 控制台"
   }
 }

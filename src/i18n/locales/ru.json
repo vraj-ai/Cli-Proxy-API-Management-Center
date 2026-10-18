@@ -1452,7 +1452,7 @@
     "meta_loaded": "{{count}} загружено",
     "meta_attention": "{{count}} требуют внимания",
     "empty_title": "Нет учётных данных с квотами",
-    "empty_desc": "Подключите учётные данные Antigravity, Claude, Codex, xAI или Kimi, чтобы отслеживать квоту здесь.",
+    "empty_desc": "Использование OpenCode Go появится выше автоматически. Подключите учётные данные Antigravity, Claude, Codex, xAI или Kimi, чтобы отслеживать квоту по аккаунтам.",
     "windows_title": "Окна квот",
     "windows_span_weekly": "две недели",
     "windows_span_session": "три дня",
@@ -2003,5 +2003,29 @@
     "modelCatalog": {
       "notLoaded": "Не загружено"
     }
+  },
+  "opencode_quota": {
+    "eyebrow": "OpenCode",
+    "title": "OpenCode Go",
+    "description": "Лимиты использования моделей OpenCode Go.",
+    "plan": "Go",
+    "stale": "Устарело",
+    "session": "Сессия",
+    "session_share": "20% месячного лимита",
+    "weekly": "Неделя",
+    "weekly_share": "50% месячного лимита",
+    "monthly": "Месяц",
+    "monthly_share": "Полный месячный лимит",
+    "left": "Осталось {{value}}",
+    "used": "Использовано {{value}}",
+    "reset": "Сброс {{value}}",
+    "reset_unknown": "Сброс неизвестен",
+    "source": "Источник · OpenUsage",
+    "plan_note": "Окна: 20% / 50% / 100% месячного лимита",
+    "empty_title": "Данных OpenCode пока нет",
+    "empty_desc": "OpenUsage не вернул окна OpenCode Go. Обновите ключ в консоли OpenCode и повторите.",
+    "unavailable_title": "Использование OpenCode недоступно",
+    "unavailable_desc": "Плагин Fleet не вернул состояние квоты для этого прокси.",
+    "open_console": "Консоль OpenCode"
   }
 }

@@ -25,6 +25,7 @@ import { ProviderTabs } from '@/features/authFiles/components/ProviderTabs';
 import { QuotaHeader } from './components/QuotaHeader';
 import { QuotaCard } from './components/QuotaCard';
 import { QuotaTimeline } from './components/QuotaTimeline';
+import { OpenCodeQuotaCard } from './OpenCodeQuotaCard';
 import {
   CARD_ENTRANCE_BUDGET_MS,
   QUOTA_PAGE_SIZE,
@@ -311,6 +312,8 @@ export function QuotaPage() {
         disableControls={disableControls}
         onRefreshAll={handleRefreshAll}
       />
+
+      <OpenCodeQuotaCard />
 
       <section className={styles.workbench}>
         {/* tabs + 排序作为一个整体入场（useRevealGroup 会给每个 [data-reveal]

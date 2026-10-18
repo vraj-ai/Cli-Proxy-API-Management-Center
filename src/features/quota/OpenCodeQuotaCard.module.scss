@@ -1,0 +1,237 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-primary);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.heading {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.eyebrow {
+  color: var(--text-tertiary);
+  font-family: $font-mono;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+}
+
+.heading p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+}
+
+.plan,
+.stale {
+  padding: 2px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 99px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-family: $font-mono;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stale {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 0 0 auto;
+
+  button {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  button:hover:not(:disabled) {
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  a {
+    color: var(--text-primary);
+    font-size: 12px;
+    text-decoration: underline;
+    text-decoration-color: var(--border-hover);
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent-color);
+  }
+}
+
+.windows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.window {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.windowHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.windowLabel {
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.windowShare {
+  color: var(--text-tertiary);
+  font-family: $font-mono;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.windowValue {
+  margin-left: auto;
+  font-family: $font-mono;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--bg-tertiary);
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 300ms var(--ease-out-strong);
+}
+
+.meterHigh {
+  background: var(--viz-success);
+}
+
+.meterMedium {
+  background: var(--quota-medium-color);
+}
+
+.meterLow {
+  background: var(--viz-failure);
+}
+
+.meterUnknown {
+  background: var(--border-hover);
+}
+
+.windowMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-family: $font-mono;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 16px;
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+}
+
+.empty strong {
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.empty p {
+  max-width: 76ch;
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-tertiary);
+  font-family: $font-mono;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 800px) {
+  .windows {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .windowValue {
+    margin-left: 0;
+  }
+}

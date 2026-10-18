@@ -1449,7 +1449,7 @@
     "meta_loaded": "{{count}} loaded",
     "meta_attention": "{{count}} need attention",
     "empty_title": "No quota-capable credentials",
-    "empty_desc": "Connect an Antigravity, Claude, Codex, xAI, or Kimi credential to track its quota here.",
+    "empty_desc": "OpenCode Go usage appears above automatically. Connect an Antigravity, Claude, Codex, xAI, or Kimi credential to track per-account quota here.",
     "windows_title": "Quota windows",
     "windows_span_weekly": "two weeks",
     "windows_span_session": "three days",
@@ -2009,5 +2009,29 @@
     "modelCatalog": {
       "notLoaded": "Not loaded"
     }
+  },
+  "opencode_quota": {
+    "eyebrow": "OpenCode",
+    "title": "OpenCode Go",
+    "description": "Usage limits across OpenCode Go models.",
+    "plan": "Go",
+    "stale": "Stale",
+    "session": "Session",
+    "session_share": "20% of monthly",
+    "weekly": "Weekly",
+    "weekly_share": "50% of monthly",
+    "monthly": "Monthly",
+    "monthly_share": "Full monthly",
+    "left": "{{value}} left",
+    "used": "{{value}} used",
+    "reset": "Resets {{value}}",
+    "reset_unknown": "Reset unknown",
+    "source": "Source · OpenUsage",
+    "plan_note": "Windows: 20% / 50% / 100% of the monthly limit",
+    "empty_title": "No OpenCode usage yet",
+    "empty_desc": "OpenUsage reports no OpenCode Go windows. Renew the key in the OpenCode Console, then refresh.",
+    "unavailable_title": "OpenCode usage is unavailable",
+    "unavailable_desc": "The Fleet plugin did not return quota state for this proxy.",
+    "open_console": "OpenCode Console"
   }
 }
