@@ -105,10 +105,55 @@ export interface FleetSavings {
   note: string;
 }
 
+// The fleet plugin is Go: a nil slice or map marshals as JSON null, and a field it
+// never sets is absent. Pages iterate these unguarded, so fix the shape on read.
+const arr = <T>(value: T[] | null | undefined): T[] => (Array.isArray(value) ? value : []);
+const obj = <T extends object>(value: T | null | undefined): T => value ?? ({} as T);
+
+export function normalizeFleetState(raw: FleetState): FleetState {
+  const features = obj(raw.features);
+  return {
+    ...raw,
+    providers: arr(raw.providers).map((provider) => ({
+      ...provider,
+      models: arr(provider.models),
+    })),
+    models: arr(raw.models),
+    quota: arr(raw.quota).map((provider) => ({
+      ...provider,
+      resources: arr(provider.resources),
+    })),
+    pace: obj(raw.pace),
+    pxpipe: { ...obj(raw.pxpipe), scope: arr(raw.pxpipe?.scope) },
+    features: {
+      ...features,
+      defaults: obj(features.defaults),
+      overrides: obj(features.overrides),
+      effective: obj(features.effective),
+      tools: obj(features.tools),
+    },
+  };
+}
+
+export function normalizeFleetKeys(raw: FleetKeysResponse): FleetKeysResponse {
+  return {
+    keys: arr(raw.keys).map((grant) => ({ ...grant, models: arr(grant.models) })),
+    legacy: arr(raw.legacy),
+  };
+}
+
+export function normalizeFleetSavings(raw: FleetSavings): FleetSavings {
+  return {
+    ...raw,
+    pxpipe: { ...obj(raw.pxpipe), saved_chars_by_model: obj(raw.pxpipe?.saved_chars_by_model) },
+    subagent_context: obj(raw.subagent_context),
+  };
+}
+
 export const fleetApi = {
-  state: () => apiClient.get<FleetState>('/fleet/state'),
-  savings: () => apiClient.get<FleetSavings>('/fleet/savings'),
-  keys: () => apiClient.get<FleetKeysResponse>('/fleet/keys'),
+  state: async () => normalizeFleetState(await apiClient.get<FleetState>('/fleet/state')),
+  savings: async () => normalizeFleetSavings(await apiClient.get<FleetSavings>('/fleet/savings')),
+  keys: async () => normalizeFleetKeys(await apiClient.get<FleetKeysResponse>('/fleet/keys')),
   createKey: (body: { name: string; mode: 'all' | 'list'; models: string[] }) =>
     apiClient.post<{ key: FleetGrant; secret: string }>('/fleet/keys', body),
   updateKey: (body: {
