@@ -150,7 +150,7 @@
     "logout": "登出",
     "back": "返回",
     "route_error_title": "此頁面發生錯誤",
-    "route_error_description": "渲染此頁面時發生非預期的錯誤。請重新載入頁面重試，或返回儀表板。",
+    "route_error_description": "渲染此頁面時發生非預期的錯誤。請重新載入頁面重試。",
     "route_error_reload": "重新載入頁面",
     "route_error_home": "返回儀表板",
     "cancel": "取消",

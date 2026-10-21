@@ -1,4 +1,4 @@
-import { Link, isRouteErrorResponse, useRouteError } from 'react-router-dom';
+import { Link, isRouteErrorResponse, useLocation, useRouteError } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import styles from './RouteErrorPage.module.scss';
@@ -9,7 +9,15 @@ function describeRouteError(error: unknown): string {
   return '';
 }
 
-export function RouteErrorView({ detail, onReload }: { detail: string; onReload: () => void }) {
+export function RouteErrorView({
+  detail,
+  showHome,
+  onReload,
+}: {
+  detail: string;
+  showHome: boolean;
+  onReload: () => void;
+}) {
   const { t } = useTranslation();
   return (
     <div className={styles.page} role="alert">
@@ -18,9 +26,11 @@ export function RouteErrorView({ detail, onReload }: { detail: string; onReload:
       {detail && <p className={styles.detail}>{detail}</p>}
       <div className={styles.actions}>
         <Button onClick={onReload}>{t('common.route_error_reload')}</Button>
-        <Link className="btn btn-secondary" to="/dashboard">
-          {t('common.route_error_home')}
-        </Link>
+        {showHome && (
+          <Link className="btn btn-secondary" to="/dashboard">
+            {t('common.route_error_home')}
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -28,7 +38,12 @@ export function RouteErrorView({ detail, onReload }: { detail: string; onReload:
 
 export function RouteErrorPage() {
   const error = useRouteError();
+  const { pathname } = useLocation();
   return (
-    <RouteErrorView detail={describeRouteError(error)} onReload={() => window.location.reload()} />
+    <RouteErrorView
+      detail={import.meta.env.DEV ? describeRouteError(error) : ''}
+      showHome={pathname !== '/dashboard'}
+      onReload={() => window.location.reload()}
+    />
   );
 }
