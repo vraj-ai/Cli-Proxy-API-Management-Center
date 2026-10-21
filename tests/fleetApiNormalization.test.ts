@@ -217,5 +217,10 @@ describe('fleet API null-array normalization', () => {
     expect(savings.pxpipe.requests).toBe(0);
     expect(savings.pxpipe.saved_pct).toBe(4);
     expect(savings.subagent_context.events).toBe(0);
+
+    stubGet({ injections_this_process: null, note: null });
+    const top = await fleetApi.savings();
+    expect(top.injections_this_process).toBe(0);
+    expect(top.note).toBe('');
   });
 });

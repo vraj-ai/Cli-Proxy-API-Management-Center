@@ -37,6 +37,23 @@ describe('page error boundary', () => {
     expect(html).not.toContain('secret internal failure');
   });
 
+  test('clears a failure when the reset key changes and keeps it otherwise', () => {
+    const boundary = new PageErrorBoundary({
+      resetKey: 'b',
+      showHome: true,
+      children: null,
+    });
+    const updates: unknown[] = [];
+    boundary.setState = (next) => updates.push(next);
+    boundary.state = { failed: true, error: new Error('x') };
+
+    boundary.componentDidUpdate({ resetKey: 'b', showHome: true, children: null });
+    expect(updates).toEqual([]);
+
+    boundary.componentDidUpdate({ resetKey: 'a', showHome: true, children: null });
+    expect(updates).toEqual([{ error: null, failed: false }]);
+  });
+
   test('MainLayout wraps the routed page so the sidebar survives a page crash', () => {
     const source = readFileSync(
       new URL('../src/components/layout/MainLayout.tsx', import.meta.url),

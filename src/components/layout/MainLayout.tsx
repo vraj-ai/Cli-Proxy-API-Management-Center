@@ -1263,7 +1263,7 @@ export function MainLayout() {
             <PageTransition
               render={(location) => (
                 <PageErrorBoundary
-                  resetKey={location.pathname}
+                  resetKey={location.key}
                   showHome={location.pathname !== '/dashboard'}
                 >
                   <MainRoutes location={location} />

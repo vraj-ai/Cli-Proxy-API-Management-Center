@@ -193,9 +193,11 @@ const ZERO_CONTEXT_SAVINGS: FleetSavings['subagent_context'] = {
 export function normalizeFleetSavings(input: FleetSavings | null): FleetSavings {
   const raw = obj<Partial<FleetSavings>>(input);
   return {
-    injections_this_process: 0,
-    note: '',
     ...raw,
+    ...withDefaults<Pick<FleetSavings, 'injections_this_process' | 'note'>>(
+      { injections_this_process: 0, note: '' },
+      raw
+    ),
     pxpipe: {
       ...withDefaults(ZERO_PXPIPE_SAVINGS, raw.pxpipe),
       saved_chars_by_model: obj(raw.pxpipe?.saved_chars_by_model),
