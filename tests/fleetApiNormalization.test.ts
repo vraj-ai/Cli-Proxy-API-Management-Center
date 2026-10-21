@@ -107,12 +107,15 @@ describe('fleet API null-array normalization', () => {
     });
   });
 
-  test('state() survives a null body and null elements inside arrays', async () => {
-    stubGet(null);
-    const empty = await fleetApi.state();
-    expect(empty.providers).toEqual([]);
-    expect(empty.flags.pxpipe).toBe(false);
+  test('state() rejects a body that is not a state object so the page shows its error UI', async () => {
+    for (const body of [null, 'oops', 42, [], {}, { generated_at: 7 }]) {
+      stubGet(body);
+      await expect(fleetApi.state()).rejects.toThrow('Invalid fleet state response');
+      getSpy?.mockRestore();
+    }
+  });
 
+  test('state() survives null elements inside arrays', async () => {
     stubGet({
       ...nullArrayState,
       providers: [

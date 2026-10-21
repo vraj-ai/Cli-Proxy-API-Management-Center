@@ -113,8 +113,19 @@ const arr = <T>(value: Array<T | null> | null | undefined): T[] =>
 const objects = <T extends object>(value: Array<T | null> | null | undefined): T[] =>
   arr(value).filter((item) => typeof item === 'object');
 
-export function normalizeFleetState(input: FleetState | null): FleetState {
-  const raw = obj(input);
+// A body with no object shape or no timestamp is not a state: throw so the page shows its
+// error and retry UI instead of a "Connected" header over an empty state.
+function isFleetStateBody(input: unknown): input is FleetState {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    typeof (input as { generated_at?: unknown }).generated_at === 'string'
+  );
+}
+
+export function normalizeFleetState(input: unknown): FleetState {
+  if (!isFleetStateBody(input)) throw new Error('Invalid fleet state response');
+  const raw = input;
   const features = obj(raw.features);
   return {
     ...raw,
