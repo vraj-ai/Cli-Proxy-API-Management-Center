@@ -110,6 +110,11 @@ export interface FleetSavings {
 const obj = <T extends object>(value: T | null | undefined): T => value ?? ({} as T);
 const arr = <T>(value: Array<T | null> | null | undefined): T[] =>
   Array.isArray(value) ? value.filter((item): item is T => item != null) : [];
+// Spread keeps an explicit null from the wire over the default; drop nulls before merging.
+const withDefaults = <T extends object>(base: T, over: Partial<T> | null | undefined): T => ({
+  ...base,
+  ...Object.fromEntries(Object.entries(obj(over)).filter(([, value]) => value != null)),
+});
 const objects = <T extends object>(value: Array<T | null> | null | undefined): T[] =>
   arr(value).filter((item) => typeof item === 'object');
 
@@ -123,18 +128,21 @@ function isFleetStateBody(input: unknown): input is FleetState {
   );
 }
 
+function normalizePace(input: FleetState['pace'] | null | undefined): FleetState['pace'] {
+  const { running, ...rest } = obj(input);
+  return running == null ? rest : { ...rest, running: arr(running) };
+}
+
 export function normalizeFleetState(input: unknown): FleetState {
   if (!isFleetStateBody(input)) throw new Error('Invalid fleet state response');
   const raw = input;
   const features = obj(raw.features);
   return {
     ...raw,
-    flags: {
-      caveman: false,
-      ponytail: false,
-      pxpipe: false,
-      ...obj<Partial<FleetState['flags']>>(raw.flags),
-    },
+    flags: withDefaults<FleetState['flags']>(
+      { caveman: false, ponytail: false, pxpipe: false },
+      raw.flags
+    ),
     providers: objects(raw.providers).map((provider) => ({
       ...provider,
       models: arr(provider.models),
@@ -144,7 +152,7 @@ export function normalizeFleetState(input: unknown): FleetState {
       ...provider,
       resources: objects(provider.resources),
     })),
-    pace: obj(raw.pace),
+    pace: normalizePace(raw.pace),
     pxpipe: { ...obj(raw.pxpipe), scope: arr(raw.pxpipe?.scope) },
     features: {
       ...features,
@@ -189,11 +197,10 @@ export function normalizeFleetSavings(input: FleetSavings | null): FleetSavings 
     note: '',
     ...raw,
     pxpipe: {
-      ...ZERO_PXPIPE_SAVINGS,
-      ...obj(raw.pxpipe),
+      ...withDefaults(ZERO_PXPIPE_SAVINGS, raw.pxpipe),
       saved_chars_by_model: obj(raw.pxpipe?.saved_chars_by_model),
     },
-    subagent_context: { ...ZERO_CONTEXT_SAVINGS, ...obj(raw.subagent_context) },
+    subagent_context: withDefaults(ZERO_CONTEXT_SAVINGS, raw.subagent_context),
   };
 }
 

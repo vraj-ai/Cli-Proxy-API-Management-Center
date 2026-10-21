@@ -178,4 +178,44 @@ describe('fleet API null-array normalization', () => {
     expect(partial.pxpipe).toEqual({ ...zeroPxpipe, requests: 7, saved_pct: 12.5 });
     expect(partial.subagent_context).toEqual({ ...zeroContext, events: 3 });
   });
+
+  test('state() reproduces the live dashboard payload: a quota provider with null resources', async () => {
+    stubGet({
+      generated_at: '2026-10-21T11:28:00Z',
+      quota: [
+        { name: 'codex', plan: 'plus', stale: false, resources: null },
+        { name: 'claude', plan: 'max', stale: true, resources: [null, { name: 'weekly' }] },
+      ],
+    });
+
+    const state = await fleetApi.state();
+
+    for (const provider of state.quota) {
+      expect(Array.isArray(provider.resources)).toBe(true);
+      expect(() => provider.resources.map((resource) => resource.name)).not.toThrow();
+    }
+    expect(state.quota[1]?.resources).toEqual([{ name: 'weekly' }]);
+  });
+
+  test('state() drops null pace.running and ignores null flags', async () => {
+    stubGet({
+      generated_at: 'x',
+      flags: { caveman: null, pxpipe: true },
+      pace: { tps: 3, running: null },
+    });
+    const state = await fleetApi.state();
+    expect(state.pace).toEqual({ tps: 3 });
+    expect(state.flags).toEqual({ caveman: false, ponytail: false, pxpipe: true });
+
+    stubGet({ generated_at: 'x', pace: { running: [null, 'gpt-6'] } });
+    expect((await fleetApi.state()).pace.running).toEqual(['gpt-6']);
+  });
+
+  test('savings() ignores null metrics so toFixed/toLocaleString never see null', async () => {
+    stubGet({ pxpipe: { requests: null, saved_pct: 4 }, subagent_context: { events: null } });
+    const savings = await fleetApi.savings();
+    expect(savings.pxpipe.requests).toBe(0);
+    expect(savings.pxpipe.saved_pct).toBe(4);
+    expect(savings.subagent_context.events).toBe(0);
+  });
 });
