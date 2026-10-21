@@ -105,10 +105,102 @@ export interface FleetSavings {
   note: string;
 }
 
+// The fleet plugin is Go: a nil slice or map marshals as JSON null, and a field it
+// never sets is absent. Pages iterate these unguarded, so fix the shape on read.
+const obj = <T extends object>(value: T | null | undefined): T => value ?? ({} as T);
+const arr = <T>(value: Array<T | null> | null | undefined): T[] =>
+  Array.isArray(value) ? value.filter((item): item is T => item != null) : [];
+const objects = <T extends object>(value: Array<T | null> | null | undefined): T[] =>
+  arr(value).filter((item) => typeof item === 'object');
+
+// A body with no object shape or no timestamp is not a state: throw so the page shows its
+// error and retry UI instead of a "Connected" header over an empty state.
+function isFleetStateBody(input: unknown): input is FleetState {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    typeof (input as { generated_at?: unknown }).generated_at === 'string'
+  );
+}
+
+export function normalizeFleetState(input: unknown): FleetState {
+  if (!isFleetStateBody(input)) throw new Error('Invalid fleet state response');
+  const raw = input;
+  const features = obj(raw.features);
+  return {
+    ...raw,
+    flags: {
+      caveman: false,
+      ponytail: false,
+      pxpipe: false,
+      ...obj<Partial<FleetState['flags']>>(raw.flags),
+    },
+    providers: objects(raw.providers).map((provider) => ({
+      ...provider,
+      models: arr(provider.models),
+    })),
+    models: arr(raw.models),
+    quota: objects(raw.quota).map((provider) => ({
+      ...provider,
+      resources: objects(provider.resources),
+    })),
+    pace: obj(raw.pace),
+    pxpipe: { ...obj(raw.pxpipe), scope: arr(raw.pxpipe?.scope) },
+    features: {
+      ...features,
+      defaults: obj(features.defaults),
+      overrides: obj(features.overrides),
+      effective: obj(features.effective),
+      tools: obj(features.tools),
+    },
+  };
+}
+
+export function normalizeFleetKeys(input: FleetKeysResponse | null): FleetKeysResponse {
+  const raw = obj(input);
+  return {
+    keys: objects(raw.keys).map((grant) => ({ ...grant, models: arr(grant.models) })),
+    legacy: objects(raw.legacy),
+  };
+}
+
+const ZERO_PXPIPE_SAVINGS: FleetSavings['pxpipe'] = {
+  requests: 0,
+  compressed: 0,
+  chars_before: 0,
+  chars_after: 0,
+  saved_chars: 0,
+  saved_pct: 0,
+  saved_chars_by_model: {},
+};
+
+const ZERO_CONTEXT_SAVINGS: FleetSavings['subagent_context'] = {
+  events: 0,
+  bytes_before: 0,
+  bytes_after: 0,
+  saved_bytes: 0,
+  saved_pct: 0,
+};
+
+export function normalizeFleetSavings(input: FleetSavings | null): FleetSavings {
+  const raw = obj<Partial<FleetSavings>>(input);
+  return {
+    injections_this_process: 0,
+    note: '',
+    ...raw,
+    pxpipe: {
+      ...ZERO_PXPIPE_SAVINGS,
+      ...obj(raw.pxpipe),
+      saved_chars_by_model: obj(raw.pxpipe?.saved_chars_by_model),
+    },
+    subagent_context: { ...ZERO_CONTEXT_SAVINGS, ...obj(raw.subagent_context) },
+  };
+}
+
 export const fleetApi = {
-  state: () => apiClient.get<FleetState>('/fleet/state'),
-  savings: () => apiClient.get<FleetSavings>('/fleet/savings'),
-  keys: () => apiClient.get<FleetKeysResponse>('/fleet/keys'),
+  state: async () => normalizeFleetState(await apiClient.get<FleetState>('/fleet/state')),
+  savings: async () => normalizeFleetSavings(await apiClient.get<FleetSavings>('/fleet/savings')),
+  keys: async () => normalizeFleetKeys(await apiClient.get<FleetKeysResponse>('/fleet/keys')),
   createKey: (body: { name: string; mode: 'all' | 'list'; models: string[] }) =>
     apiClient.post<{ key: FleetGrant; secret: string }>('/fleet/keys', body),
   updateKey: (body: {
