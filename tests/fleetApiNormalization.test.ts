@@ -91,4 +91,88 @@ describe('fleet API null-array normalization', () => {
 
     expect(savings.pxpipe.saved_chars_by_model).toEqual({});
   });
+  test('state() defaults flags so the page can index every flag', async () => {
+    stubGet({ ...nullArrayState, flags: null });
+    expect((await fleetApi.state()).flags).toEqual({
+      caveman: false,
+      ponytail: false,
+      pxpipe: false,
+    });
+
+    stubGet({ ...nullArrayState, flags: { caveman: true } });
+    expect((await fleetApi.state()).flags).toEqual({
+      caveman: true,
+      ponytail: false,
+      pxpipe: false,
+    });
+  });
+
+  test('state() survives a null body and null elements inside arrays', async () => {
+    stubGet(null);
+    const empty = await fleetApi.state();
+    expect(empty.providers).toEqual([]);
+    expect(empty.flags.pxpipe).toBe(false);
+
+    stubGet({
+      ...nullArrayState,
+      providers: [
+        null,
+        { name: 'codex', kind: 'oauth', disabled: false, models: [null, 'gpt-5.4'] },
+      ],
+      quota: [null, { name: 'claude', plan: 'max', stale: false, resources: [null] }],
+    });
+    const state = await fleetApi.state();
+    expect(state.providers.map((provider) => provider.name)).toEqual(['codex']);
+    expect(state.providers[0]?.models).toEqual(['gpt-5.4']);
+    expect(state.quota.map((provider) => provider.name)).toEqual(['claude']);
+    expect(state.quota[0]?.resources).toEqual([]);
+  });
+
+  test('keys() survives a null body and null elements', async () => {
+    stubGet(null);
+    expect(await fleetApi.keys()).toEqual({ keys: [], legacy: [] });
+
+    stubGet({
+      keys: [null, { id: 'a', models: ['m'] }],
+      legacy: [null, { index: 1, prefix: 'sk-' }],
+    });
+    const keys = await fleetApi.keys();
+    expect(keys.keys.map((grant) => grant.id)).toEqual(['a']);
+    expect(keys.legacy).toEqual([{ index: 1, prefix: 'sk-' }]);
+  });
+
+  test('savings() zero-fills every metric the page formats', async () => {
+    const zeroPxpipe = {
+      requests: 0,
+      compressed: 0,
+      chars_before: 0,
+      chars_after: 0,
+      saved_chars: 0,
+      saved_pct: 0,
+      saved_chars_by_model: {},
+    };
+    const zeroContext = {
+      events: 0,
+      bytes_before: 0,
+      bytes_after: 0,
+      saved_bytes: 0,
+      saved_pct: 0,
+    };
+
+    stubGet({ pxpipe: null, subagent_context: null });
+    expect(await fleetApi.savings()).toEqual({
+      pxpipe: zeroPxpipe,
+      subagent_context: zeroContext,
+      injections_this_process: 0,
+      note: '',
+    });
+
+    stubGet(null);
+    expect((await fleetApi.savings()).subagent_context).toEqual(zeroContext);
+
+    stubGet({ pxpipe: { requests: 7, saved_pct: 12.5 }, subagent_context: { events: 3 } });
+    const partial = await fleetApi.savings();
+    expect(partial.pxpipe).toEqual({ ...zeroPxpipe, requests: 7, saved_pct: 12.5 });
+    expect(partial.subagent_context).toEqual({ ...zeroContext, events: 3 });
+  });
 });

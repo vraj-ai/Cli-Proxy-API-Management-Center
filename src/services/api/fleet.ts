@@ -107,21 +107,31 @@ export interface FleetSavings {
 
 // The fleet plugin is Go: a nil slice or map marshals as JSON null, and a field it
 // never sets is absent. Pages iterate these unguarded, so fix the shape on read.
-const arr = <T>(value: T[] | null | undefined): T[] => (Array.isArray(value) ? value : []);
 const obj = <T extends object>(value: T | null | undefined): T => value ?? ({} as T);
+const arr = <T>(value: Array<T | null> | null | undefined): T[] =>
+  Array.isArray(value) ? value.filter((item): item is T => item != null) : [];
+const objects = <T extends object>(value: Array<T | null> | null | undefined): T[] =>
+  arr(value).filter((item) => typeof item === 'object');
 
-export function normalizeFleetState(raw: FleetState): FleetState {
+export function normalizeFleetState(input: FleetState | null): FleetState {
+  const raw = obj(input);
   const features = obj(raw.features);
   return {
     ...raw,
-    providers: arr(raw.providers).map((provider) => ({
+    flags: {
+      caveman: false,
+      ponytail: false,
+      pxpipe: false,
+      ...obj<Partial<FleetState['flags']>>(raw.flags),
+    },
+    providers: objects(raw.providers).map((provider) => ({
       ...provider,
       models: arr(provider.models),
     })),
     models: arr(raw.models),
-    quota: arr(raw.quota).map((provider) => ({
+    quota: objects(raw.quota).map((provider) => ({
       ...provider,
-      resources: arr(provider.resources),
+      resources: objects(provider.resources),
     })),
     pace: obj(raw.pace),
     pxpipe: { ...obj(raw.pxpipe), scope: arr(raw.pxpipe?.scope) },
@@ -135,18 +145,44 @@ export function normalizeFleetState(raw: FleetState): FleetState {
   };
 }
 
-export function normalizeFleetKeys(raw: FleetKeysResponse): FleetKeysResponse {
+export function normalizeFleetKeys(input: FleetKeysResponse | null): FleetKeysResponse {
+  const raw = obj(input);
   return {
-    keys: arr(raw.keys).map((grant) => ({ ...grant, models: arr(grant.models) })),
-    legacy: arr(raw.legacy),
+    keys: objects(raw.keys).map((grant) => ({ ...grant, models: arr(grant.models) })),
+    legacy: objects(raw.legacy),
   };
 }
 
-export function normalizeFleetSavings(raw: FleetSavings): FleetSavings {
+const ZERO_PXPIPE_SAVINGS: FleetSavings['pxpipe'] = {
+  requests: 0,
+  compressed: 0,
+  chars_before: 0,
+  chars_after: 0,
+  saved_chars: 0,
+  saved_pct: 0,
+  saved_chars_by_model: {},
+};
+
+const ZERO_CONTEXT_SAVINGS: FleetSavings['subagent_context'] = {
+  events: 0,
+  bytes_before: 0,
+  bytes_after: 0,
+  saved_bytes: 0,
+  saved_pct: 0,
+};
+
+export function normalizeFleetSavings(input: FleetSavings | null): FleetSavings {
+  const raw = obj<Partial<FleetSavings>>(input);
   return {
+    injections_this_process: 0,
+    note: '',
     ...raw,
-    pxpipe: { ...obj(raw.pxpipe), saved_chars_by_model: obj(raw.pxpipe?.saved_chars_by_model) },
-    subagent_context: obj(raw.subagent_context),
+    pxpipe: {
+      ...ZERO_PXPIPE_SAVINGS,
+      ...obj(raw.pxpipe),
+      saved_chars_by_model: obj(raw.pxpipe?.saved_chars_by_model),
+    },
+    subagent_context: { ...ZERO_CONTEXT_SAVINGS, ...obj(raw.subagent_context) },
   };
 }
 
