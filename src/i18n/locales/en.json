@@ -143,7 +143,18 @@
     "managed_keys_help": "The secret is shown once. Revoke a key to cut off every client using it.",
     "model_table": "Model access controls",
     "model": "Model",
-    "model_search_placeholder": "Filter model IDs"
+    "model_search_placeholder": "Filter model IDs",
+    "todos_heading": "Engineer todos",
+    "todos_help": "Read-only task list reported by the Fleet plugin.",
+    "todos_fetched": "Fetched {{value}}",
+    "todos_updated": "Newest update {{value}}",
+    "todos_empty": "No engineer todos reported.",
+    "todos_problem_empty": "No todo data is available.",
+    "todos_problem_malformed": "Todo data could not be read.",
+    "todo_status_pending": "Pending",
+    "todo_status_in_progress": "In progress",
+    "todo_status_blocked_on_vraj": "Blocked on Vraj",
+    "todo_status_completed": "Completed"
   },
   "common": {
     "login": "Login",

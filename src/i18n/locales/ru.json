@@ -143,7 +143,18 @@
     "managed_keys_help": "Секрет показывается один раз. Отзыв ключа сразу отключает всех клиентов.",
     "model_table": "Управление доступом к моделям",
     "model": "Модель",
-    "model_search_placeholder": "Фильтр ID моделей"
+    "model_search_placeholder": "Фильтр ID моделей",
+    "todos_heading": "Задачи инженеров",
+    "todos_help": "Список задач только для чтения, который передаёт плагин Fleet.",
+    "todos_fetched": "Получено {{value}}",
+    "todos_updated": "Последнее обновление {{value}}",
+    "todos_empty": "Задачи инженеров не переданы.",
+    "todos_problem_empty": "Данных о задачах нет.",
+    "todos_problem_malformed": "Не удалось прочитать данные о задачах.",
+    "todo_status_pending": "Ожидает",
+    "todo_status_in_progress": "В работе",
+    "todo_status_blocked_on_vraj": "Ждёт Vraj",
+    "todo_status_completed": "Выполнено"
   },
   "common": {
     "login": "Войти",

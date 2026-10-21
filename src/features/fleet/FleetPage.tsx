@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { fleetApi, type FleetGrant, type FleetSavings } from '@/services/api/fleet';
+import {
+  fleetApi,
+  type FleetGrant,
+  type FleetSavings,
+  type FleetTodosResponse,
+} from '@/services/api/fleet';
 import { pluginsApi } from '@/services/api/plugins';
 import { useAuthStore } from '@/stores';
 import { isRecord } from '@/utils/helpers';
 import { DEFAULT_GRANT_MODE, grantModelsFor } from './grants';
+import { groupTodos, normalizeTodos } from './todos';
 import styles from './FleetPage.module.scss';
 
 type FleetView = 'overview' | 'access' | 'activity';
@@ -132,10 +138,87 @@ function LoadState<T>({ result, retry }: { result: FleetLoad<T>; retry: () => vo
   );
 }
 
+const formatWhen = (value?: string | null) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toLocaleString();
+};
+
+function TodosCard({ response }: { response?: FleetTodosResponse | null }) {
+  const { t } = useTranslation();
+  const { todos, updatedAt, problem } = useMemo(() => normalizeTodos(response?.raw), [response?.raw]);
+  const projects = useMemo(() => groupTodos(todos), [todos]);
+  const fetchedAt = formatWhen(response?.fetched_at);
+  const newestAt = formatWhen(updatedAt);
+  const flagged = Boolean(response?.stale || response?.error || problem);
+  const problemText =
+    response?.error || (problem ? t(`fleet.todos_problem_${problem}`) : '');
+
+  return (
+    <section className={styles.panel} aria-labelledby="fleet-todos-heading">
+      <div className={styles.sectionHead}>
+        <div>
+          <h2 id="fleet-todos-heading">{t('fleet.todos_heading')}</h2>
+          <p>{t('fleet.todos_help')}</p>
+        </div>
+        <div className={styles.todoMeta}>
+          {fetchedAt && (
+            <time dateTime={response?.fetched_at}>
+              {t('fleet.todos_fetched', { value: fetchedAt })}
+            </time>
+          )}
+          {newestAt && <span>{t('fleet.todos_updated', { value: newestAt })}</span>}
+          {flagged && <span className={styles.stale}>{t('fleet.stale')}</span>}
+        </div>
+      </div>
+      {problemText && (
+        <p className={styles.muted} role="status">
+          {problemText}
+        </p>
+      )}
+      {todos.length === 0 ? (
+        <p className={styles.muted}>{t('fleet.todos_empty')}</p>
+      ) : (
+        <div className={styles.todoProjects}>
+          {projects.map(({ project, groups }) => (
+            <section className={styles.todoProject} key={project} aria-label={project}>
+              <h3>{project}</h3>
+              {groups.map(({ status, items }) => (
+                <div className={styles.todoGroup} key={status}>
+                  <h4>{t(`fleet.todo_status_${status}`)}</h4>
+                  <ul className={styles.todoList}>
+                    {items.map((todo) => {
+                      const when = formatWhen(todo.updated_at);
+                      return (
+                        <li key={todo.id}>
+                          {todo.link ? (
+                            <a href={todo.link} target="_blank" rel="noopener noreferrer">
+                              {todo.title}
+                            </a>
+                          ) : (
+                            <span>{todo.title}</span>
+                          )}
+                          {when && <time dateTime={todo.updated_at}>{when}</time>}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function FleetOverview() {
   const { t } = useTranslation();
   const load = useCallback(() => fleetApi.state(), []);
+  const todosLoadFn = useCallback(async () => (await fleetApi.todos()) ?? null, []);
   const { result, refresh } = useFleetData(load);
+  const todosLoad = useFleetData(todosLoadFn);
   const state = result.status === 'ready' ? result.value : null;
 
   return (
@@ -261,6 +344,8 @@ function FleetOverview() {
           </section>
         </>
       )}
+      <LoadState result={todosLoad.result} retry={() => void todosLoad.refresh()} />
+      {todosLoad.result.status === 'ready' && <TodosCard response={todosLoad.result.value} />}
     </FleetShell>
   );
 }

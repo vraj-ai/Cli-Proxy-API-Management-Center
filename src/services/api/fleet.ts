@@ -84,6 +84,13 @@ export interface FleetKeysResponse {
   legacy: Array<{ index: number; prefix: string }>;
 }
 
+export interface FleetTodosResponse {
+  raw: string;
+  fetched_at: string;
+  stale: boolean;
+  error?: string;
+}
+
 export interface FleetSavings {
   pxpipe: {
     requests: number;
@@ -208,6 +215,7 @@ export const fleetApi = {
   state: async () => normalizeFleetState(await apiClient.get<FleetState>('/fleet/state')),
   savings: async () => normalizeFleetSavings(await apiClient.get<FleetSavings>('/fleet/savings')),
   keys: async () => normalizeFleetKeys(await apiClient.get<FleetKeysResponse>('/fleet/keys')),
+  todos: () => apiClient.get<FleetTodosResponse>('/fleet/todos'),
   createKey: (body: { name: string; mode: 'all' | 'list'; models: string[] }) =>
     apiClient.post<{ key: FleetGrant; secret: string }>('/fleet/keys', body),
   updateKey: (body: {
