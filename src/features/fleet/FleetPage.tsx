@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   fleetApi,
+  normalizeTodosResponse,
   type FleetGrant,
   type FleetSavings,
   type FleetTodosResponse,
@@ -146,13 +147,13 @@ const formatWhen = (value?: string | null) => {
 
 function TodosCard({ response }: { response?: FleetTodosResponse | null }) {
   const { t } = useTranslation();
-  const { todos, updatedAt, problem } = useMemo(() => normalizeTodos(response?.raw), [response?.raw]);
+  const safe = useMemo(() => normalizeTodosResponse(response), [response]);
+  const { todos, updatedAt, problem } = useMemo(() => normalizeTodos(safe.raw), [safe.raw]);
   const projects = useMemo(() => groupTodos(todos), [todos]);
-  const fetchedAt = formatWhen(response?.fetched_at);
+  const fetchedAt = formatWhen(safe.fetched_at);
   const newestAt = formatWhen(updatedAt);
-  const flagged = Boolean(response?.stale || response?.error || problem);
-  const problemText =
-    response?.error || (problem ? t(`fleet.todos_problem_${problem}`) : '');
+  const flagged = Boolean(safe.stale || safe.error || problem);
+  const problemText = safe.error || (problem ? t(`fleet.todos_problem_${problem}`) : '');
 
   return (
     <section className={styles.panel} aria-labelledby="fleet-todos-heading">
@@ -163,7 +164,7 @@ function TodosCard({ response }: { response?: FleetTodosResponse | null }) {
         </div>
         <div className={styles.todoMeta}>
           {fetchedAt && (
-            <time dateTime={response?.fetched_at}>
+            <time dateTime={safe.fetched_at}>
               {t('fleet.todos_fetched', { value: fetchedAt })}
             </time>
           )}

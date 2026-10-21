@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, spyOn, test } from 'bun:test';
 import { groupTodos, normalizeTodos, type Todo } from '../src/features/fleet/todos';
 import { apiClient } from '../src/services/api/client';
-import { fleetApi } from '../src/services/api/fleet';
+import { fleetApi, normalizeTodosResponse } from '../src/services/api/fleet';
 
 let getSpy: ReturnType<typeof spyOn> | undefined;
 
@@ -168,6 +168,48 @@ describe('groupTodos', () => {
 
   test('returns no groups for no todos', () => {
     expect(groupTodos([])).toEqual([]);
+  });
+});
+
+describe('normalizeTodosResponse', () => {
+  test('coerces an object error to an empty string', () => {
+    expect(normalizeTodosResponse({ raw: '[]', error: { message: 'boom' } })).toEqual({
+      raw: '[]',
+      fetched_at: '',
+      stale: false,
+      error: '',
+    });
+  });
+
+  test('coerces a numeric raw to an empty string', () => {
+    expect(normalizeTodosResponse({ raw: 42, fetched_at: 7, stale: 'yes' })).toEqual({
+      raw: '',
+      fetched_at: '',
+      stale: false,
+      error: '',
+    });
+  });
+
+  test('returns an empty envelope for null, array, and string input', () => {
+    for (const input of [null, [], '[{"id":"a"}]', 'text', 42, undefined]) {
+      expect(normalizeTodosResponse(input)).toEqual({
+        raw: '',
+        fetched_at: '',
+        stale: false,
+        error: '',
+      });
+    }
+  });
+
+  test('keeps valid string fields and a boolean stale flag', () => {
+    const payload = {
+      raw: '[]',
+      fetched_at: '2026-10-21T12:00:00Z',
+      stale: true,
+      error: 'todo file unreadable',
+    };
+
+    expect(normalizeTodosResponse(payload)).toEqual(payload);
   });
 });
 
