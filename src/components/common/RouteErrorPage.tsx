@@ -13,14 +13,16 @@ export function RouteErrorView({
   detail,
   showHome,
   onReload,
+  embedded = false,
 }: {
   detail: string;
   showHome: boolean;
   onReload: () => void;
+  embedded?: boolean;
 }) {
   const { t } = useTranslation();
   return (
-    <div className={styles.page} role="alert">
+    <div className={embedded ? `${styles.page} ${styles.embedded}` : styles.page} role="alert">
       <h1>{t('common.route_error_title')}</h1>
       <p>{t('common.route_error_description')}</p>
       {detail && <p className={styles.detail}>{detail}</p>}
