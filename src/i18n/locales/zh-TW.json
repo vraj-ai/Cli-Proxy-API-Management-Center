@@ -143,7 +143,18 @@
     "managed_keys_help": "金鑰只顯示一次。撤銷後，所有使用它的用戶端立即失效。",
     "model_table": "模型存取控制",
     "model": "模型",
-    "model_search_placeholder": "篩選模型 ID"
+    "model_search_placeholder": "篩選模型 ID",
+    "todos_heading": "工程師待辦",
+    "todos_help": "由 Fleet 外掛上報的唯讀任務清單。",
+    "todos_fetched": "取得於 {{value}}",
+    "todos_updated": "最新更新 {{value}}",
+    "todos_empty": "尚無工程師待辦。",
+    "todos_problem_empty": "尚無待辦資料。",
+    "todos_problem_malformed": "無法讀取待辦資料。",
+    "todo_status_pending": "待處理",
+    "todo_status_in_progress": "進行中",
+    "todo_status_blocked_on_vraj": "等待 Vraj",
+    "todo_status_completed": "已完成"
   },
   "common": {
     "login": "登入",

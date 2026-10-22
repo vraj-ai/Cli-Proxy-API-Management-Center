@@ -143,7 +143,18 @@
     "managed_keys_help": "密钥只显示一次。吊销后，所有使用它的客户端立即失效。",
     "model_table": "模型访问控制",
     "model": "模型",
-    "model_search_placeholder": "筛选模型 ID"
+    "model_search_placeholder": "筛选模型 ID",
+    "todos_heading": "工程师待办",
+    "todos_help": "由 Fleet 插件上报的只读任务列表。",
+    "todos_fetched": "获取于 {{value}}",
+    "todos_updated": "最新更新 {{value}}",
+    "todos_empty": "暂无工程师待办。",
+    "todos_problem_empty": "暂无待办数据。",
+    "todos_problem_malformed": "无法读取待办数据。",
+    "todo_status_pending": "待处理",
+    "todo_status_in_progress": "进行中",
+    "todo_status_blocked_on_vraj": "等待 Vraj",
+    "todo_status_completed": "已完成"
   },
   "common": {
     "login": "登录",

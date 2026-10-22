@@ -84,6 +84,13 @@ export interface FleetKeysResponse {
   legacy: Array<{ index: number; prefix: string }>;
 }
 
+export interface FleetTodosResponse {
+  raw: string;
+  fetched_at: string;
+  stale: boolean;
+  error?: string;
+}
+
 export interface FleetSavings {
   pxpipe: {
     requests: number;
@@ -206,10 +213,28 @@ export function normalizeFleetSavings(input: FleetSavings | null): FleetSavings 
   };
 }
 
+const text = (value: unknown): string => (typeof value === 'string' ? value : '');
+
+// The envelope is rendered directly, so coerce every field before it reaches JSX:
+// an object in `error` must not become a React child.
+export function normalizeTodosResponse(input: unknown): FleetTodosResponse {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) {
+    return { raw: '', fetched_at: '', stale: false, error: '' };
+  }
+  const body = input as Record<string, unknown>;
+  return {
+    raw: text(body.raw),
+    fetched_at: text(body.fetched_at),
+    stale: body.stale === true,
+    error: text(body.error),
+  };
+}
+
 export const fleetApi = {
   state: async () => normalizeFleetState(await apiClient.get<FleetState>('/fleet/state')),
   savings: async () => normalizeFleetSavings(await apiClient.get<FleetSavings>('/fleet/savings')),
   keys: async () => normalizeFleetKeys(await apiClient.get<FleetKeysResponse>('/fleet/keys')),
+  todos: async () => normalizeTodosResponse(await apiClient.get<unknown>('/fleet/todos')),
   createKey: (body: { name: string; mode: 'all' | 'list'; models: string[] }) =>
     apiClient.post<{ key: FleetGrant; secret: string }>('/fleet/keys', body),
   updateKey: (body: {
